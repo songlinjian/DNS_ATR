@@ -8,7 +8,7 @@ Intended status: Informational                         September 5, 2017
 Expires: March 9, 2018
 
 
-       ATR: Additional Truncation Response for Large DNS Response
+       ATR: Additional Truncated Response for Large DNS Response
                       draft-song-atr-large-resp-00
 
 Abstract
@@ -55,7 +55,7 @@ Copyright Notice
 
 Song                      Expires March 9, 2018                 [Page 1]
 
-Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
+Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
    to this document.  Code Components extracted from this document must
@@ -111,7 +111,7 @@ Table of Contents
 
 Song                      Expires March 9, 2018                 [Page 2]
 
-Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
+Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
    But it is reported that 17% resolvers is not capable to send query
@@ -167,7 +167,7 @@ Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
 
 Song                      Expires March 9, 2018                 [Page 3]
 
-Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
+Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
    not necessary if EDNS(0) is already supported for both resolver and
@@ -223,7 +223,7 @@ Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
 
 Song                      Expires March 9, 2018                 [Page 4]
 
-Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
+Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
       server firstly sends the normal response and then coin a truncated
@@ -279,7 +279,7 @@ Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
 
 Song                      Expires March 9, 2018                 [Page 5]
 
-Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
+Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
 5.  IANA considerations
@@ -335,7 +335,7 @@ Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
 
 Song                      Expires March 9, 2018                 [Page 6]
 
-Internet-DraftATR: Additional Truncation Response for LargSeptember 2017
+Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
    [RFC1035]  Mockapetris, P., "Domain names - implementation and

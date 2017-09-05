@@ -66,12 +66,13 @@ def forward(data, addr, sock):
     # if truncation or not
     qlen = len(UDP_DNS_wire)
     print 'qlen=', qlen
-    if qlen <= 1280:
-        print 'qlen <= 1280'
+    if qlen <= atr_size:
+        print 'qlen <= ', atr_size
         sock.sendto(UDP_DNS_wire, addr)
     else:
-        print 'qlen > 1280, too big, truncate the response'
+        print 'qlen > ',atr_size, ', too big, truncate the response'
         trun_dns_ans = truncate_ans(dns_message)
+        # you can simulate the UDP packet drop and timeout if the sock.sendto is commented out
         sock.sendto(UDP_DNS_wire, addr)
         print "fragmentation may be dropped"
         #time.sleep(2)
@@ -126,6 +127,7 @@ if __name__ == '__main__':
         config_dict['lru_size'])
     db = config_dict['db']
     dns_default = config_dict['dns']
+    atr_size = config_dict['atr_size']
 
     # 启动服务器
     DNSServer.start()

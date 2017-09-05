@@ -120,7 +120,7 @@ def load_config(filename):
 
 
 if __name__ == '__main__':
-    # 读取配置文件
+    # read the config file
     #config_file = os.path.basename(__file__).split('.')[0] + '.ini'
     config_file = 'config.ini'
     config_dict = load_config(config_file)

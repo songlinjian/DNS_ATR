@@ -1,0 +1,399 @@
+<?xml version="1.0"?>
+<!-- This template is for creating an Internet Draft using xml2rfc,
+     which is available here: http://xml.resource.org. -->
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!-- One method to get references from the online citation libraries.
+     There has to be one entity for each item to be referenced.
+     An alternate method (rfc include) is described in the references. -->
+
+<!ENTITY RFC1035 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.1035.xml">
+<!ENTITY RFC2671 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2671.xml">
+<!ENTITY RFC6891 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6891.xml">
+<!ENTITY RFC7872 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7872.xml">
+<!ENTITY RFC7873 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7873.xml">
+
+<!ENTITY I-D.taylor-v6ops-fragdrop SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-taylor-v6ops-fragdrop-02.xml">
+<!ENTITY I-D.bonica-6man-frag-deprecate SYSTEM "https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.draft-bonica-6man-frag-deprecate-01.xml">
+<!ENTITY I-D.ietf-dnsop-respsize SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-ietf-dnsop-respsize-15.xml">
+<!ENTITY I-D.song-yeti-testbed-experience SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-song-yeti-testbed-experience-01.xml">
+<!ENTITY I-D.andrews-tcp-and-ipv6-use-minmtu SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-andrews-tcp-and-ipv6-use-minmtu-04.xml">
+
+]>
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<!-- used by XSLT processors -->
+<!-- For a complete list and description of processing instructions (PIs),
+     please see http://xml.resource.org/authoring/README.html. -->
+<!-- Below are generally applicable Processing Instructions (PIs) that most I-Ds might want to use.
+     (Here they are set differently than their defaults in xml2rfc v1.32) -->
+<?rfc strict="yes" ?>
+<!-- give errors regarding ID-nits and DTD validation -->
+<!-- control the table of contents (ToC) -->
+<?rfc toc="yes"?>
+<?rfc tocappendix="yes"?>
+<!-- generate a ToC -->
+<?rfc tocdepth="3"?>
+<!-- the number of levels of subsections in ToC. default: 3 -->
+<!-- control references -->
+<?rfc symrefs="yes"?>
+<!-- use symbolic references tags, i.e, [RFC2119] instead of [1] -->
+<?rfc sortrefs="yes" ?>
+<!-- sort the reference entries alphabetically -->
+<!-- control vertical white space
+     (using these PIs as follows is recommended by the RFC Editor) -->
+<?rfc compact="yes" ?>
+<!-- do not start each main section on a new page -->
+<?rfc subcompact="no" ?>
+<!-- keep one blank line between list items -->
+<!-- end of list of popular I-D processing instructions -->
+<?rfc comments="no" ?>
+<?rfc inline="yes" ?>
+<rfc category="info" docName="draft-song-atr-large-resp-00" ipr="trust200902">
+
+  <front>
+
+    <title>ATR: Additional Truncation Response for Large DNS Response </title>
+
+    <author fullname="Linjian Song" initials="L." surname="Song">
+      <organization>Beijing Internet Institute</organization>
+      <address>
+        <postal>
+          <street>Floor-2, Building-5, Digital Planet, Courtyard-58, Jing Hai Wu Lu, BDA</street>
+          <city>Beijing</city>
+          <region></region>
+          <code>101111</code>
+          <country>P. R. China</country>
+        </postal>
+        <email>songlinjian@gmail.com</email>
+        <uri>http://www.biigroup.com/</uri>
+      </address>
+    </author>
+    <date/>
+    <!-- Meta-data Declarations -->
+
+    <area>Internet Area</area>
+    <workgroup>Internet Engineering Task Force</workgroup>
+
+    <!-- <keyword>dns</keyword> -->
+
+    <abstract>
+      <t>
+        As the increasing use of DNSSEC and IPv6, there are more 
+        public evidence and concerns on IPv6 fragmentation issues 
+        due to larger DNS payloads over IPv6. This memo introduces an 
+        simple improvement on authoritative server by replying additional 
+        truncated response just after the normal large response.  
+      </t>
+
+      <t>REMOVE BEFORE PUBLICATION: The source of the document with test script 
+        is currently placed at GitHub <xref target="ATR-Github"/>. Comments 
+        and pull request are welcome. </t>
+
+    </abstract>
+
+  </front>
+
+  <middle>
+
+    <section title="Introduction">
+
+      <t>
+        Large DNS response is identified as a issue for a 
+        long time. It has been regarded mainly as a issue 
+        or limitation on authoritative server (delegation) 
+        as <xref target="I-D.ietf-dnsop-respsize"/> introduced. 
+        As the increasing use of DNSSEC and IPv6, there are 
+        more public evidence and concerns on resolver's 
+        suffering due to packets dropping caused by IPv6 
+        fragmentation in DNS. 
+      </t>
+  
+      <t>  
+        It is observed that some IPv6 network devices 
+        like firewalls intentionally choose to drop the IPv6 
+        packets with fragmentation Headers<xref target="I-D.taylor-v6ops-fragdrop"/>. 
+        <xref target="RFC7872"/> reported more than 30% drop rates for sending 
+        fragmented packets. Regarding IPv6 fragmentation issue due 
+        to larger DNS payloads in response, one measurement <xref target="IPv6-frag-DNS"/>
+        reported 37% of endpoints using IPv6-capable DNS resolver 
+        can not receive a fragmented IPv6 response over UDP.
+      </t>
+
+
+      <t>
+        Some workarounds and short-term solutions are proposed. 
+        One is to continue to keep the response within a safe 
+        boundary, 512 octets for IPv4 and 1232 octets for IPv6 
+        (IPv6 MTU minus IPv6 header and UDP header). It avoids 
+        fragmentation, but it requires TCP and UDP applications 
+        to fit this limitation explicitly. Currently coordination 
+        between IP layer and upper layer still do not go well. For 
+        example the draft <xref target="I-D.andrews-tcp-and-ipv6-use-minmtu"/> 
+        viewed it as a problem that TCP fails to respect IPV6_USE_MIN_MTU. </t>
+
+       <t>   
+        Still, some cases are hard to avoid, for example the coming KSK 
+        rollover which will produce 1424 octets DNS response containing 
+        the new key and signature. To encounter this problem, some root 
+        servers (A and J) implemented countermeasures by truncating 
+        the response once the size of response surpasses 1220 octets 
+        (IPv6-edns-size: 1220). But it is reported that 17% resolvers 
+        is not capable to send query via TCP <xref target="IPv6-frag-DNS"/>. 
+        It becomes a dilemma to choose hurting the users who can 
+        not receive fragmentation or users without TCP capacity. 
+      </t>
+
+       <t>
+        To relieve the dilemma in short term, this memo introduces an 
+        small improvement on DNS responding process by replying Additional 
+        Truncated Response (ATR) just after the normal response.
+        The original design of ENDS0 and Truncation mechanism for Large response 
+        are orthogonal. ATR intends to decouple the two. In ATR EDNS0 and TCP 
+        fall-back can work independently according to Authoritative server's 
+        requirement. 
+      </t>
+
+      <t>
+        ATR targets to relieve the hurt of resolver (both stub and recursive 
+        resolver) from the position of server (both authoritative and 
+        recursive server). It does not require any changes on resolver 
+        and has a deploy-and-gain feature to encourage operators to 
+        implement it to benefit their resolvers.  
+       </t>
+
+      <t>
+        ATR can be also used as a measurement tool for those operators 
+        who would like to know how much and which resolvers can not 
+        receive IPv6 fragmented response. They can turn on the ATR function 
+        occasionally and record the TCP connection it received during the 
+        period. The data may be helpful to do some fine-grained analysis 
+        between different NS servers and provide apply ATR to specific 
+        group of resolvers.
+        </t> 
+
+       <t>
+        Note that the methodology of ATR can be extended to support 
+        other transport protocol like DNS over HTTP(s), DNS over QUIC, if they 
+        become one optional transport for DNS.</t>
+    
+
+    </section>
+
+    <section title="EDNS0 and DNS TCP">
+      <t>
+        DNS has an inherent mechanism defined in <xref target="RFC1035" /> 
+        to handle large DNS response by indicating (set TrunCation bit) 
+        the resolver to fall back to query via TCP. However, due 
+        to the fear of cost of TCP, TCP fall-back in DNS 
+        was in negative position from the very beginning of DNS. 
+        people had to seek another way to handle large DNS response. 
+      </t>
+      <t>
+        EDNS(0) <xref target="RFC2671" /> was introduced as a cure 
+        for the issue of large DNS response and TCP fall back  
+        firstly in 1999 and obsoleted by <xref target="RFC6891" /> 
+        in 2013. The basic idea of EDNS(0) is to introduce a 
+        channel for resolver and authoritative server to negotiate 
+        an appropriate DNS payload size in end-to-end approach. 
+      </t>
+
+      <t>
+        The intention of EDNS(0) is to avoid TCP fall back. So 
+        the use of EDNS(0) make TCP fall-back rare, 
+        which in turn gives people a wrong implication that 
+        EDNS(0) is more advanced than DNS TCP and DNS TCP is 
+        not necessary if EDNS(0) is already supported for both 
+        resolver and authoritative server. Plus the fear of 
+        "poor" TCP performance, DNS TCP function is stripped 
+        even for modern DNS implementations. An measurement 
+        study <xref target="Not-speak-TCP"/>showed 
+        that about 17% of resolvers in the samples can not ask 
+        a query in TCP when they receive truncated response.</t> 
+      <t>
+        Ironically today when TCP is recalled as a solutions to large 
+        DNS response, the installed base of resolver without TCP 
+        function become a real issue which should be consider. 
+      </t>
+
+    </section>
+    <section title="The ATR mechanism">
+
+      <t>
+        The ATR mechanism is very simple that it involves a ATR module in 
+        the responding process of current DNS implementation . As show in 
+        the following diagram the ATR module is right after truncation loop 
+        if the packet is not going to be fragmented. </t>
+
+      <figure anchor="components" title="High-Level Testbed Components">
+        <artwork>
+          <![CDATA[
+
+A DNS query +-------------+        +-------------+
+            |             | No     |             |  Normal response
+     +------>  Truncation +-------->     ATR     +------------->
+            |    loop     |        |    Module   |
+            | truncation? |        | truncation? |
+            +-------------+        +-------------+
+                yes|                   yes|         +-----+
+                   |                      +---------+timer+---->
+                   |                                +-----+
+                   |                          Truncated Response
+                   +---------------------------->
+                    Truncated Response
+
+        ]]>
+        </artwork>
+      </figure>
+      <t>
+        The ATR responding process goes as follows:
+      </t>
+        <t><list style="symbols">
+
+        <t>1) When an authoritative server receives a query 
+        and enters the responding process, it first go through the normal 
+        truncation loop to see whether the size of response surpasses the EDNS0 
+        payload size. If yes, it ends up with responding a truncated packets. 
+        If no, it enters the ATR module.</t>
+
+        <t>2) In ATR module, similar like truncation loop, the size of response is 
+        compared with a fixed size. If the response of a query is larger than 
+        a certain value, 1220 octets for example, the server firstly sends
+        the normal response and then coin a truncated response with the same 
+        ID of the query.</t>
+
+        <t>3) The server can send the coined truncated response in not time. 
+        But considering the possibility of network reordering, it is 
+        suggested a timer to delay the second truncated response to around 
+        10 millisecond which can be configured by local operation.</t>
+      </list></t>
+
+        <t>
+        There are three cases when ATR are deployed in the authoritative sever:
+      </t>
+      <t><list style="symbols">
+      <t>
+        Case 1: A resolver (or sub-resolver) will receive both the large response 
+        and a very small truncated response in sequence. It will happily 
+        accepts the first response and drop the second one because the transaction 
+        is over. 
+      </t>
+       <t>
+        Case 2: In case a fragment is dropped in the middle, the resolver will end up 
+        with only receiving the small truncated response. It will retry using TCP 
+        in no time. </t>
+
+        <t>
+        Case 3: For those (probably 30%*17% of them) who can not speak TCP and sitting 
+        behind a firewall stubbornly dropping fragments. Just say good luck to them!
+        </t>
+        </list></t>
+        <t>
+        Especially regarding the coming KSK rollover, if the root server implements 
+        ATR rather than setting IPv6-edns-size to 1220 octets, it will helpful for 
+        resolver with TCP capacity, because it still has a fair chance to receive 
+        the large response. </t>
+        <t>
+        As to case 2, there is one performance consideration on resolver side. 
+        It is about how resolver react to ATR when it receives only the truncated 
+        response. They can choose TCP right away or wait other NS servers to respond. 
+        Normally the fragments are dropped in the ASes along the path. A different NS 
+        server with different path may avoid "bad" ASes. But in the extreme case, 
+        implementation may first try UDP queries with all NS servers, but all fail 
+        due to the dropped fragments. It may end up with "no servers could be reached" 
+        or revert automatically to TCP which also introduce delay. So if allowed by 
+        local policy, a diligent resolver can also emit queries via both channels.</t>  
+
+    </section>
+  <section title="Security Considerations">
+    <t>
+    There may be concerns on DDoS attack problem due to the fact that the 
+    ATR introduces multiple responses from authoritative server. DNS cookies <xref target="RFC7873" />  
+    and RRL on authoritative may be possible solutions</t>
+
+  </section>
+
+    <section title="IANA considerations">
+      <t>No IANA registration work is required for the time being</t>
+ 
+    </section>
+
+   <section title="Acknowledgments">
+    <t>
+    
+    </t>
+  </section> <!-- Acknowledgments -->
+  
+  </middle>
+
+  <back>
+
+    <references title="References">
+      &RFC1035; &RFC2671;&RFC6891;&RFC7872;&RFC7873;
+      &I-D.bonica-6man-frag-deprecate;
+      &I-D.song-yeti-testbed-experience;&I-D.taylor-v6ops-fragdrop;
+      &I-D.andrews-tcp-and-ipv6-use-minmtu;&I-D.ietf-dnsop-respsize;
+
+
+     <reference anchor="SAC016">
+            <front>
+                <title>Testing Firewalls for IPv6 and EDNS0 Support</title>
+                <author>
+                    <organization>ICANN Security and Stability Advisory Committee</organization>
+                </author>
+                <date year="2007" />
+            </front>
+     </reference>
+
+      <reference anchor="SAC035">
+            <front>
+                <title>DNSSEC Impact on Broadband Routers and Firewalls </title>
+                <author>
+                    <organization>ICANN Security and Stability Advisory Committee</organization>
+                </author>
+                <date year="2008" />
+            </front>
+     </reference>
+     <reference anchor="IPv6-frag-DNS" target="https://blog.apnic.net/2017/08/22/dealing-ipv6-fragmentation-dns">
+            <front>
+                <title>Dealing with IPv6 fragmentation in the DNS</title>
+                <author fullname= "Goeff Huston">
+                  <organization></organization>
+                  <address></address>
+                </author>
+                <date year="2017" month="August" day="22"/>
+            </front>
+     </reference>  
+      <reference anchor="Not-speak-TCP" target="https://labs.ripe.net/Members/gih/a-question-of-dns-protocols">
+            <front>
+                <title>A Question of DNS Protocols</title>
+                <author fullname= "Goeff Huston">
+                  <organization></organization>
+                  <address></address>
+                </author>
+                <date year="2013" month="August" day="28"/>
+            </front>
+     </reference>  
+     <reference anchor="Yeti-DNS-Project" target="http://www.yeti-dns.org">
+            <front>
+                <title>Website of Yeti DNS Project</title>
+                <author >
+                  <organization></organization>
+                  <address></address>
+                </author>
+                <date />
+            </front>
+     </reference>     
+      <reference anchor="ATR-Github" target="https://github.com/songlinjian/DNS_ATR">
+       <front>
+        <title>XML source file and test script of DNS ATR</title>
+       <author>
+       <organization></organization>
+        </author>
+        <date year="2017" month="September" day="5"></date>
+      </front>
+    </reference>
+
+     </references>
+
+  </back>
+</rfc>
+

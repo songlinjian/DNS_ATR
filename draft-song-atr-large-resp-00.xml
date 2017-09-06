@@ -13,9 +13,7 @@
 <!ENTITY RFC7873 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7873.xml">
 
 <!ENTITY I-D.taylor-v6ops-fragdrop SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-taylor-v6ops-fragdrop-02.xml">
-<!ENTITY I-D.bonica-6man-frag-deprecate SYSTEM "https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.draft-bonica-6man-frag-deprecate-01.xml">
 <!ENTITY I-D.ietf-dnsop-respsize SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-ietf-dnsop-respsize-15.xml">
-<!ENTITY I-D.song-yeti-testbed-experience SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-song-yeti-testbed-experience-01.xml">
 <!ENTITY I-D.andrews-tcp-and-ipv6-use-minmtu SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-andrews-tcp-and-ipv6-use-minmtu-04.xml">
 
 ]>
@@ -134,12 +132,12 @@
         Still, some cases are hard to avoid, for example the coming KSK 
         rollover which will produce 1424 octets DNS response containing 
         the new key and signature. To encounter this problem, some root 
-        servers (A and J) implemented countermeasures by truncating 
-        the response once the size of response surpasses 1220 octets 
-        (IPv6-edns-size: 1220). But it is reported that 17% resolvers 
-        is not capable to send query via TCP <xref target="IPv6-frag-DNS"/>. 
-        It becomes a dilemma to choose hurting the users who can 
-        not receive fragmentation or users without TCP capacity. 
+        servers (A, B, G and J) implemented countermeasures by truncating 
+        the response once the large IPv6 packet surpasses 1280 octets <xref target="root-stars"/>. But it is reported that 17% resolvers is not 
+        capable to send query via TCP <xref target="IPv6-frag-DNS"/> 
+        (It is also possbile that the middle boxes drop the tcp queries). 
+        It becomes a dilemma to choose hurting the users who can not 
+        receive fragmentation or users without TCP capacity. 
       </t>
 
        <t>
@@ -211,7 +209,8 @@
       <t>
         Ironically today when TCP is recalled as a solutions to large 
         DNS response, the installed base of resolver without TCP 
-        function become a real issue which should be consider. 
+        function (or the middle box stops DNS TCP connections) become a 
+        real issue which should be consider. 
       </t>
 
     </section>
@@ -288,8 +287,8 @@ A DNS query +-------------+        +-------------+
         </list></t>
         <t>
         Especially regarding the coming KSK rollover, if the root server implements 
-        ATR rather than setting IPv6-edns-size to 1220 octets, it will helpful for 
-        resolver with TCP capacity, because it still has a fair chance to receive 
+        ATR rather than setting IPv6-edns-size to 1220 octets, it would be helpful for 
+        resolver without TCP capacity, because it still has a fair chance to receive 
         the large response. </t>
         <t>
         As to case 2, there is one performance consideration on resolver side. 
@@ -327,9 +326,7 @@ A DNS query +-------------+        +-------------+
   <back>
 
     <references title="References">
-      &RFC1035; &RFC2671;&RFC6891;&RFC7872;&RFC7873;
-      &I-D.bonica-6man-frag-deprecate;
-      &I-D.song-yeti-testbed-experience;&I-D.taylor-v6ops-fragdrop;
+      &RFC1035; &RFC2671;&RFC6891;&RFC7872;&RFC7873;&I-D.taylor-v6ops-fragdrop;
       &I-D.andrews-tcp-and-ipv6-use-minmtu;&I-D.ietf-dnsop-respsize;
 
 
@@ -372,16 +369,17 @@ A DNS query +-------------+        +-------------+
                 <date year="2013" month="August" day="28"/>
             </front>
      </reference>  
-     <reference anchor="Yeti-DNS-Project" target="http://www.yeti-dns.org">
+     <reference anchor="root-stars" target="https://blog.apnic.net/2016/11/15/scoring-dns-root-server-system/">
             <front>
-                <title>Website of Yeti DNS Project</title>
-                <author >
+                <title>Scoring the DNS Root Server System</title>
+                <author fullname= "Goeff Huston">
                   <organization></organization>
                   <address></address>
                 </author>
-                <date />
+                <date year="2016" month="November" day="15"/>
             </front>
-     </reference>     
+     </reference>  
+
       <reference anchor="ATR-Github" target="https://github.com/songlinjian/DNS_ATR">
        <front>
         <title>XML source file and test script of DNS ATR</title>

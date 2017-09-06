@@ -4,8 +4,8 @@
 
 Internet Engineering Task Force                                  L. Song
 Internet-Draft                                Beijing Internet Institute
-Intended status: Informational                         September 5, 2017
-Expires: March 9, 2018
+Intended status: Informational                         September 6, 2017
+Expires: March 10, 2018
 
 
        ATR: Additional Truncated Response for Large DNS Response
@@ -38,7 +38,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on March 9, 2018.
+   This Internet-Draft will expire on March 10, 2018.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Song                      Expires March 9, 2018                 [Page 1]
+Song                     Expires March 10, 2018                 [Page 1]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
@@ -68,7 +68,7 @@ Table of Contents
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    2.  EDNS0 and DNS TCP . . . . . . . . . . . . . . . . . . . . . .   3
    3.  The ATR mechanism . . . . . . . . . . . . . . . . . . . . . .   4
-   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   5
+   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
    5.  IANA considerations . . . . . . . . . . . . . . . . . . . . .   6
    6.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   6
    7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   6
@@ -104,20 +104,21 @@ Table of Contents
    Still, some cases are hard to avoid, for example the coming KSK
    rollover which will produce 1424 octets DNS response containing the
    new key and signature.  To encounter this problem, some root servers
-   (A and J) implemented countermeasures by truncating the response once
-   the size of response surpasses 1220 octets (IPv6-edns-size: 1220).
+   (A, B, G and J) implemented countermeasures by truncating the
+   response once the large IPv6 packet surpasses 1280 octets
 
 
 
-Song                      Expires March 9, 2018                 [Page 2]
+Song                     Expires March 10, 2018                 [Page 2]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
-   But it is reported that 17% resolvers is not capable to send query
-   via TCP [IPv6-frag-DNS].  It becomes a dilemma to choose hurting the
-   users who can not receive fragmentation or users without TCP
-   capacity.
+   [root-stars].  But it is reported that 17% resolvers is not capable
+   to send query via TCP [IPv6-frag-DNS] (It is also possbile that the
+   middle boxes drop the tcp queries).  It becomes a dilemma to choose
+   hurting the users who can not receive fragmentation or users without
+   TCP capacity.
 
    To relieve the dilemma in short term, this memo introduces an small
    improvement on DNS responding process by replying Additional
@@ -161,15 +162,15 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
    The intention of EDNS(0) is to avoid TCP fall back.  So the use of
    EDNS(0) make TCP fall-back rare, which in turn gives people a wrong
-   implication that EDNS(0) is more advanced than DNS TCP and DNS TCP is
 
 
 
-Song                      Expires March 9, 2018                 [Page 3]
+Song                     Expires March 10, 2018                 [Page 3]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
+   implication that EDNS(0) is more advanced than DNS TCP and DNS TCP is
    not necessary if EDNS(0) is already supported for both resolver and
    authoritative server.  Plus the fear of "poor" TCP performance, DNS
    TCP function is stripped even for modern DNS implementations.  An
@@ -178,8 +179,9 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
    response.
 
    Ironically today when TCP is recalled as a solutions to large DNS
-   response, the installed base of resolver without TCP function become
-   a real issue which should be consider.
+   response, the installed base of resolver without TCP function (or the
+   middle box stops DNS TCP connections) become a real issue which
+   should be consider.
 
 3.  The ATR mechanism
 
@@ -215,17 +217,18 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
       size.  If yes, it ends up with responding a truncated packets.  If
       no, it enters the ATR module.
 
-   o  2) In ATR module, similar like truncation loop, the size of
-      response is compared with a fixed size.  If the response of a
-      query is larger than a certain value, 1220 octets for example, the
 
 
 
-Song                      Expires March 9, 2018                 [Page 4]
+
+Song                     Expires March 10, 2018                 [Page 4]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
+   o  2) In ATR module, similar like truncation loop, the size of
+      response is compared with a fixed size.  If the response of a
+      query is larger than a certain value, 1220 octets for example, the
       server firstly sends the normal response and then coin a truncated
       response with the same ID of the query.
 
@@ -252,8 +255,8 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
    Especially regarding the coming KSK rollover, if the root server
    implements ATR rather than setting IPv6-edns-size to 1220 octets, it
-   will helpful for resolver with TCP capacity, because it still has a
-   fair chance to receive the large response.
+   would be helpful for resolver without TCP capacity, because it still
+   has a fair chance to receive the large response.
 
    As to case 2, there is one performance consideration on resolver
    side.  It is about how resolver react to ATR when it receives only
@@ -267,20 +270,23 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
    allowed by local policy, a diligent resolver can also emit queries
    via both channels.
 
+
+
+
+
+
+
+
+Song                     Expires March 10, 2018                 [Page 5]
+
+Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
+
+
 4.  Security Considerations
 
    There may be concerns on DDoS attack problem due to the fact that the
    ATR introduces multiple responses from authoritative server.  DNS
    cookies [RFC7873] and RRL on authoritative may be possible solutions
-
-
-
-
-
-Song                      Expires March 9, 2018                 [Page 5]
-
-Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
-
 
 5.  IANA considerations
 
@@ -299,20 +305,10 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
               draft-andrews-tcp-and-ipv6-use-minmtu-04 (work in
               progress), October 2015.
 
-   [I-D.bonica-6man-frag-deprecate]
-              Bonica, R., Kumari, W., and R. Bush, "IPv6 Fragment Header
-              Deprecated", draft-bonica-6man-frag-deprecate-01 (work in
-              progress), June 2013.
-
    [I-D.ietf-dnsop-respsize]
               Vixie, P., Kato, A., and J. Abley, "DNS Referral Response
               Size Issues", draft-ietf-dnsop-respsize-15 (work in
               progress), February 2014.
-
-   [I-D.song-yeti-testbed-experience]
-              Song, D., Kerr, S., and D. Liu, "Experiences from Root
-              Testbed in the Yeti DNS Project", draft-song-yeti-testbed-
-              experience-01 (work in progress), December 2015.
 
    [I-D.taylor-v6ops-fragdrop]
               Jaeggli, J., Colitti, L., Kumari, W., Vyncke, E., Kaeo,
@@ -330,17 +326,17 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
               <https://labs.ripe.net/Members/gih/a-question-of-dns-
               protocols>.
 
-
-
-
-Song                      Expires March 9, 2018                 [Page 6]
-
-Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
-
-
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
               specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
               November 1987, <https://www.rfc-editor.org/info/rfc1035>.
+
+
+
+
+Song                     Expires March 10, 2018                 [Page 6]
+
+Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
+
 
    [RFC2671]  Vixie, P., "Extension Mechanisms for DNS (EDNS0)",
               RFC 2671, DOI 10.17487/RFC2671, August 1999,
@@ -361,14 +357,16 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
               Cookies", RFC 7873, DOI 10.17487/RFC7873, May 2016,
               <https://www.rfc-editor.org/info/rfc7873>.
 
+   [root-stars]
+              "Scoring the DNS Root Server System", November 2016,
+              <https://blog.apnic.net/2016/11/15/scoring-dns-root-
+              server-system/>.
+
    [SAC016]   ICANN Security and Stability Advisory Committee, "Testing
               Firewalls for IPv6 and EDNS0 Support", 2007.
 
    [SAC035]   ICANN Security and Stability Advisory Committee, "DNSSEC
               Impact on Broadband Routers and Firewalls", 2008.
-
-   [Yeti-DNS-Project]
-              "Website of Yeti DNS Project", <http://www.yeti-dns.org>.
 
 Author's Address
 
@@ -389,4 +387,6 @@ Author's Address
 
 
 
-Song                      Expires March 9, 2018                 [Page 7]
+
+
+Song                     Expires March 10, 2018                 [Page 7]

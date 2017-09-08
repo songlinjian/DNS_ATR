@@ -297,7 +297,7 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
    Resolver can retire many times(12 times for root) to other NS servers
    if one path to particular server failed.  The performance comparison
    between retries with other NS server and ATR is hard to measure.  But
-   it is still valuable in root server area
+   it is still valuable in two cases:
 
    1) For those server (like root) implemented or plan to implement
    "always-truncation" for large packets, they can benefit from not

@@ -322,7 +322,7 @@ A DNS query +-------------+        +-------------+
       path to particular server failed. The performance 
       comparison between retries with other NS server and 
       ATR is hard to measure. But it is still valuable in 
-      root server area  
+      two cases:
     </t>
 
     <t>

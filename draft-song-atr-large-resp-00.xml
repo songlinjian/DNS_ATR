@@ -310,6 +310,35 @@ A DNS query +-------------+        +-------------+
 
   </section>
 
+   <section title="Author's Commnets">
+
+    <t>REMOVE BEFORE PUBLICATION: </t>
+
+    <t>
+      When drafting this proposal,there is a question in 
+      author's mind about the benefit of ATR which may be 
+      too trivial to implement. Resolver can retire many 
+      times(12 times for root) to other NS servers if one 
+      path to particular server failed. The performance 
+      comparison between retries with other NS server and 
+      ATR is hard to measure. But it is still valuable in 
+      root server area  
+    </t>
+
+    <t>
+    1) For those server (like root) implemented or plan to implement "always-truncation" for large packets, they can benefit from 
+    not doing unnecessary TCP fall back.  </t>
+
+    <t>
+    2) For those area or countries where only one or two NS servers 
+    instance are deployed (root in China for example), stick to the 
+    local root server (with around 10ms latency for UDP and roughly 
+    around 30ms for TCP) is better than select another NS server far 
+    away (with around 200ms latency) </t>
+ 
+
+   </section>
+
     <section title="IANA considerations">
       <t>No IANA registration work is required for the time being</t>
  

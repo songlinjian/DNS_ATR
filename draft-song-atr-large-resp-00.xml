@@ -164,7 +164,7 @@
         receive IPv6 fragmented response. They can turn on the ATR function 
         occasionally and record the TCP connection it received during the 
         period. The data may be helpful to do some fine-grained analysis 
-        between different NS servers and provide apply ATR to specific 
+        between different NS servers and provide ATR to specific 
         group of resolvers.
         </t> 
 

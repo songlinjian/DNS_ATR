@@ -4,8 +4,8 @@
 
 Internet Engineering Task Force                                  L. Song
 Internet-Draft                                Beijing Internet Institute
-Intended status: Informational                         September 8, 2017
-Expires: March 12, 2018
+Intended status: Informational                        September 11, 2017
+Expires: March 15, 2018
 
 
        ATR: Additional Truncated Response for Large DNS Response
@@ -38,7 +38,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on March 12, 2018.
+   This Internet-Draft will expire on March 15, 2018.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Song                     Expires March 12, 2018                 [Page 1]
+Song                     Expires March 15, 2018                 [Page 1]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Song                     Expires March 12, 2018                 [Page 2]
+Song                     Expires March 15, 2018                 [Page 2]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
@@ -140,8 +140,7 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
    fragmented response.  They can turn on the ATR function occasionally
    and record the TCP connection it received during the period.  The
    data may be helpful to do some fine-grained analysis between
-   different NS servers and provide apply ATR to specific group of
-   resolvers.
+   different NS servers and provide ATR to specific group of resolvers.
 
    Note that the methodology of ATR can be extended to support other
    transport protocol like DNS over HTTP(s), DNS over QUIC, if they
@@ -161,17 +160,16 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
    resolver and authoritative server to negotiate an appropriate DNS
    payload size in end-to-end approach.
 
+   The intention of EDNS(0) is to avoid TCP fall back.  So the use of
+   EDNS(0) make TCP fall-back rare, which in turn gives people a wrong
 
 
 
-
-Song                     Expires March 12, 2018                 [Page 3]
+Song                     Expires March 15, 2018                 [Page 3]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
-   The intention of EDNS(0) is to avoid TCP fall back.  So the use of
-   EDNS(0) make TCP fall-back rare, which in turn gives people a wrong
    implication that EDNS(0) is more advanced than DNS TCP and DNS TCP is
    not necessary if EDNS(0) is already supported for both resolver and
    authoritative server.  Plus the fear of "poor" TCP performance, DNS
@@ -221,7 +219,9 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
 
-Song                     Expires March 12, 2018                 [Page 4]
+
+
+Song                     Expires March 15, 2018                 [Page 4]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
@@ -277,7 +277,7 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
 
-Song                     Expires March 12, 2018                 [Page 5]
+Song                     Expires March 15, 2018                 [Page 5]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
@@ -333,7 +333,7 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
 
-Song                     Expires March 12, 2018                 [Page 6]
+Song                     Expires March 15, 2018                 [Page 6]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
@@ -389,7 +389,7 @@ Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
 
 
-Song                     Expires March 12, 2018                 [Page 7]
+Song                     Expires March 15, 2018                 [Page 7]
 
 Internet-DraftATR: Additional Truncated Response for LargeSeptember 2017
 
@@ -445,4 +445,4 @@ Author's Address
 
 
 
-Song                     Expires March 12, 2018                 [Page 8]
+Song                     Expires March 15, 2018                 [Page 8]

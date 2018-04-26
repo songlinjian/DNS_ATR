@@ -17,7 +17,10 @@ Abstract
    evidence and concerns on IPv6 fragmentation issues due to larger DNS
    payloads over IPv6.  This memo introduces an simple improvement on
    DNS server by replying an additional truncated response just after
-   the normal fragmented response.
+   the normal fragmented response.  It can be used to relieve users
+   suffering on DNS latency and failures due to large DNS response.  It
+   also can be utilized as a measuring and troubleshooting tool to
+   locate the issue and conquer.
 
    REMOVE BEFORE PUBLICATION: The source of the document with test
    script is currently placed at GitHub [ATR-Github].  Comments and pull
@@ -47,9 +50,6 @@ Copyright Notice
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
-   (http://trustee.ietf.org/license-info) in effect on the date of
-   publication of this document.  Please review these documents
-   carefully, as they describe your rights and restrictions with respect
 
 
 
@@ -58,6 +58,9 @@ Song                    Expires October 28, 2018                [Page 1]
 Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
@@ -78,7 +81,7 @@ Table of Contents
    8.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  10
    9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
    Appendix A.  How well does ATR actually work? . . . . . . . . . .  11
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  12
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  13
 
 1.  Introduction
 
@@ -89,8 +92,8 @@ Table of Contents
    of TCP, EDNS(0) [RFC6891] was proposed which encourages server to
    reponse larger response instead of falling back to TCP.  However, as
    the increasing use of DNSSEC and IPv6, there are more public evidence
-   and concerns on resolver's suffering due to packets dropping caused
-   by IPv6 fragmentation in DNS due to large DNS response.
+   and concerns on user's suffering due to packets dropping caused by
+   IPv6 fragmentation in DNS due to large DNS response.
 
    It is observed that some IPv6 network devices like firewalls
    intentionally choose to drop the IPv6 packets with fragmentation
@@ -102,9 +105,6 @@ Table of Contents
    over UDP.  Moreover, most of the underlying issues with fragments are
    unrevealed due to good redundancy and resilience of DNS.  It is hard
    for DNS client and server operators to trace and locate the issue
-   when fragments are blocked or dropped.  The noticeable DNS failures
-   in users experience are just the tip of the iceberg.
-
 
 
 
@@ -114,33 +114,36 @@ Song                    Expires October 28, 2018                [Page 2]
 Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 
-   Depending on retry model, the resolver failing to receive fragmented
-   response may experience long latency or failure due to timeout and
-   reties.  One typical case is that the resolver finally got the answer
-   after several retires and it falls back to TCP after deceasing the
-   payload size in EDNS0.  To avoid that issue, some authoritative
-   servers may adopt a policy ignoring the UDP payload size in EDNS0
-   extension and always truncating the response when the response size
-   is large than a expected one.  However one study [Not-speak-TCP]
-   showed that about 17% of resolvers in the samples can not ask a query
-   in TCP when they receive truncated response.  It seems a dilemma to
-   choose hurting either the users who can not receive fragmentation or
-   the users without TCP capacity.There is also some voice of "moving
-   all DNS over TCP".  But It is generally desired that DNS can keep the
-   efficiency and high performance by using DNS UDP in most of time and
-   fallback as soon as possible to TCP if necessary for some corner
-   case.
+   when fragments are blocked or dropped.  The noticeable DNS failures
+   and latency experienced by end users are just the tip of the iceberg.
+
+   Depending on retry model, the resolver's failing to receive
+   fragmented response may experience long latency or failure due to
+   timeout and reties.  One typical case is that the resolver finally
+   got the answer after several retires and it falls back to TCP after
+   deceasing the payload size in EDNS0.  To avoid that issue, some
+   authoritative servers may adopt a policy ignoring the UDP payload
+   size in EDNS0 extension and always truncating the response when the
+   response size is large than a expected one.  However one study
+   [Not-speak-TCP] shows that about 17% of resolvers in the samples can
+   not ask a query in TCP when they receive truncated response.  It
+   seems a dilemma to choose hurting either the users who can not
+   receive fragments or the users without TCP fallback capacity.  There
+   is also some voice of "moving all DNS over TCP".  But It is generally
+   desired that DNS can keep the efficiency and high performance by
+   using DNS UDP in most of time and fallback as soon as possible to TCP
+   if necessary for some corner case.
 
    To relieve the problem, this memo introduces an small improvement on
-   DNS responding process by replying Additional Truncated Response
+   DNS responding process by replying an Additional Truncated Response
    (ATR) just after a normal large response which is to be fragmented.
    Generally speaking ATR provides a way to decouple the EDNS0 and TCP
    fallback in which they can work independently according to the server
-   operator's requirement.  SO one goal of ATR is to relieve the hurt of
-   resolver (both stub and recursive resolver) from the position of
-   server (both authoritative and recursive server).  It does not
-   require any changes on resolver and has a deploy-and-gain feature to
-   encourage operators to implement it to benefit their resolvers.
+   operator's requirement.  One goal of ATR is to relieve the hurt of
+   users, both stub and recursive resolver, from the position of server,
+   both authoritative and recursive server.  It does not require any
+   changes on resolver and has a deploy-and-gain feature to encourage
+   operators to implement it to benefit their resolvers.
 
    Another goal of ATR is to help troubleshooting for DNS operators
    where ATR can be deployed as a measurement tool.  A flag bit is
@@ -154,14 +157,11 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    among different name servers, and provide ATR to specific group of
    resolvers.
 
-   Note that in Appendix A of this memo there is a brief introduction
-   and reference to the study done by APNIC on how well does ATR
-   actually work.  It may help people to understand what the benefit and
+   [REMOVE BEFORE PUBLICATION] Note that in Appendix A of this memo
+   there is a brief introduction of the test done by APNIC on how well
+   does ATR actually work.  And comments are also attached by the author
+   of this memo.  It may help people to understand what the benefit and
    tradeoff that ATR brings.
-
-
-
-
 
 
 
@@ -203,10 +203,10 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
       no, it enters the ATR module.
 
    o  In ATR module, similar like truncation loop, the size of response
-      is compared with a fixed size called ATR payload size.  If the
-      response of a query is larger than ATR payload size, the server
-      firstly sends the normal response and then coin a truncated
-      response with the same ID of the query.
+      is compared with a value called ATR payload size.  If the response
+      of a query is larger than ATR payload size, the server firstly
+      sends the normal response and then coin a truncated response with
+      the same ID of the query.
 
    o  The server can reply the coined truncated response in no time.
       But considering the possible impact of network reordering, it is
@@ -215,8 +215,8 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
       operation.
 
    Note that the choice of ATR payload size and timer SHOULD be
-   configured locally.  And the operational guidance is discussed in
-   Section 4.2 and Section 4.1 respectively.
+   configured locally.  And the operational consideration and guidance
+   is discussed in Section 4.2 and Section 4.1 respectively.
 
 
 
@@ -226,8 +226,9 @@ Song                    Expires October 28, 2018                [Page 4]
 Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 
-   There are three cases when a resolver send query to an ATR server in
-   which the server will generate a large response with fragments:
+   There are three typical cases of ATR-unaware resolver behavior when a
+   resolver send query to an ATR server in which the server will
+   generate a large response with fragments:
 
    o  Case 1: a resolver (or sub-resolver) will receive both the large
       response and a very small truncated response in sequence.  It will
@@ -245,8 +246,7 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    In the case authoritative server truncated all response surpass
    certain value , for example setting IPv6-edns-size to 1220 octets,
    ATR will helpful for resolver with TCP capacity, because the resolver
-   still has a fair chance to receive the large response.  The
-   measurement done in APNIC (in Appendix A) shows that ...
+   still has a fair chance to receive the large response.
 
 3.  Indicating a ATR response
 
@@ -309,10 +309,10 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 4.  Operational considerations
 
-   In this memo, only the behavior of ATR on authoritative server and
-   the AO bit are specified as a standard.  There are still empty spaces
-   for operational issues, such as the parameter of the ATR timer and
-   ATR payload size, and policies on when ATR is trigged to avoid side-
+   In this memo, only the behavior of ATR server and the AO bit are
+   specified as a standard.  There are still empty spaces for
+   operational issues, such as the parameter of the ATR timer and ATR
+   payload size, and policies on when ATR is triggered to avoid side-
    effect.
 
 4.1.  ATR timer
@@ -338,14 +338,13 @@ Song                    Expires October 28, 2018                [Page 6]
 Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 
-   o  1) RO is mainly caused by the parallelism in Internet components
-      and links other than network anomaly [Bennett].  It is observed
-      that RO is highly related to the traffic load of Internet
-      components.  So RO will long exists as long as the traffic load
-      increase and the parallelism is used to enhance network
-      throughput.
+   o  RO is mainly caused by the parallelism in Internet components and
+      links other than network anomaly [Bennett].  It is observed that
+      RO is highly related to the traffic load of Internet components.
+      So RO will long exists as long as the traffic load increase and
+      the parallelism is used to enhance network throughput.
 
-   o  2) The probability of RO varies largely depending on the different
+   o  The probability of RO varies largely depending on the different
       tests samples from different work.  Some are below 2% [Paxson]
       [Tinta] and some are above 90% [Bennett] which is testing in . It
       is concluded that the RO is site-dependent and path-dependent.  It
@@ -354,8 +353,8 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
       observed that higher rates smaller packets were more prone to RO
       because the sending inter-spacing time was small.
 
-   o  3) It is reported that the inter-arrival time of RO varies from a
-      few milliseconds to multiple tens of milliseconds[Tinta].  And the
+   o  It is reported that the inter-arrival time of RO varies from a few
+      milliseconds to multiple tens of milliseconds[Tinta].  And the
       larger the packet the larger the inter-arrival time, since larger
       packets will take longer to be transmitted.
 
@@ -385,6 +384,7 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    good input from APNIC study on how to react to large response for
    authoritative server.  The only difference is that ATR focuses on the
    second response after the ordinary response.
+
 
 
 
@@ -639,21 +639,40 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    end of this report
 
    This test and report definitely made ATR more shiny attracting
-   attention in the community.  However, objectively speaking, there are
-   still something unknown on "How well does ATR actually work".  For
-   example, the test only counts the "success" case ("failure"
-   otherwise) in which the "success" for Large UDP case can be achieved
-   by normal retries.  The latency of that retries may saved by ATR is
-   not taken into account.  If not misunderstood, the test
-   underestimates the benefit of ATR in terms of speed of response.
+   attention in the community.  But it is found that there are still
+   something unknown on "How well does ATR actually work".  Firstly the
+   test only counts the "success" case ("failure" otherwise) in which
+   the "success" for Large UDP case can be achieved by normal retries.
+   The latency of that retries may saved by ATR is not taken into
+   account.
 
-   Another missing part is about the ATR timer and RO impact.  In APNIC
-   test, 10 ms was adopted as the delay of ATR timer according to 00
-   version of this draft.  Different delay of ATR timer may not change
-   the key result on gains of ATR (9% for IPv4 and 15% for IPv6).  But
-   the cost of RO is not measured for majority cases in which ATR is not
-   needed, say 87% in IPv4, and 79% in IPv6.  So it overestimate ATR in
-   this regards if RO cost is not taken into account.
+   Secondly no measurement and analysis is done to compare ATR with TCP.
+   From the failure rate of users, we see ATR and TCP have similar
+   performance (same for IPv4, and only 2% difference in IPv6).  But
+   there are resolvers who are able to receive the fragments more sooner
+   in ATR case , but fall back to TCP in always-truncation case.  If not
+   misunderstood, the two unknown parts underestimates the benefit of
+   ATR in terms of speed of response.
+
+   The third unknown part is about the ATR timer and RO impact.  In
+   APNIC test, 10 ms was adopted as the delay of ATR timer according to
+   00 version of this draft.  Different delay of ATR timer may not
+   change the key result on gains of ATR (9% for IPv4 and 15% for IPv6).
+   But the cost of RO is not measured for majority cases in which ATR is
+   not needed, say 87% in IPv4, and 79% in IPv6.  So it overestimate ATR
+   in this regards if RO cost is not taken into account.
+
+
+
+
+
+
+
+
+Song                    Expires October 28, 2018               [Page 12]
+
+Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+
 
 Author's Address
 
@@ -669,4 +688,41 @@ Author's Address
 
 
 
-Song                    Expires October 28, 2018               [Page 12]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Song                    Expires October 28, 2018               [Page 13]

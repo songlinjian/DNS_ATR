@@ -57,6 +57,7 @@
         <uri>http://www.biigroup.com/</uri>
       </address>
     </author>
+
     <date/>
     <!-- Meta-data Declarations -->
 
@@ -284,32 +285,31 @@ query |             | No     |             | response
         A simple way for that indicator of ATR response is to define a 
         bit in the Z field on the EDNS0 OPT header in the response. This 
         has the virtue of simplicity, and only a minimal risk of breaking 
-        existing implementations. This bit is referred to as the "ATR OK" (AO) 
-        bit.  In the context of the EDNS0 OPT meta-RR, just following the 
-        DO bit, the AO bit is the second bit of the third and fourth bytes 
+        existing implementations. This bit is referred to as the "ATR Response" (AT) bit.  In the context of the EDNS0 OPT meta-RR, just following the 
+        DO bit, the AT bit is the second bit of the third and fourth bytes 
         of the "extended RCODE and flags" portion (section 6.1.3 of RFC6891) 
         of the EDNS0 OPT meta-RR, structured as follows:
       </t>
-      <figure anchor="AO-bit" title="Wire format of extended RCODE and flags with AO bit">
+      <figure anchor="AT-bit" title="Wire format of extended RCODE and flags with AT bit">
         <artwork>
         <![CDATA[
                  +0 (MSB)                +1 (LSB)
          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
       0: |   EXTENDED-RCODE      |       VERSION         |
          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      2: |DO|AO|                 Z                       |
+      2: |DO|AT|                 Z                       |
          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 
         ]]>
         </artwork>
       </figure>
       <t>
-       The logic of AO bit is simple that setting the AO bit to 
+       The logic of AT bit is simple that setting the AT bit to 
        one in a response indicates to the resolver that the response 
        is an ATR response. The DO bit cleared(set to zero) indicates 
-       the response is a ordinary response. Note that AO bit and TC 
+       the response is a ordinary response. Note that AT bit and TC 
        bit SHOULD be set and appear in the response as a pair. The 
-       response will be ignored if only AO bit is set.
+       response will be ignored if only AT bit is set.
      </t>
 
      <t>
@@ -327,7 +327,7 @@ query |             | No     |             | response
 
       <t>
         In previous sections, only behavior of ATR server 
-        and AO bit are specified. There are lots of space 
+        and AT bit are specified. There are lots of space 
         for operational issues, such as the parameter of 
         the ATR timer and ATR payload size, and policies 
         on when ATR is triggered to avoid side-effect.</t>
@@ -490,18 +490,18 @@ query |             | No     |             | response
         OPT record. IETF Standards Action is required for assignments of 
         new EDNS(0) flags.</t>
 
-      <t>This document reserves one of these bits as the AO bit. It is requested 
+      <t>This document reserves one of these bits as the AT bit. It is requested 
         that the second bit (left most) be allocated. Thus the USE of the OPT 
         record TTL field would look like:</t>
 
-      <figure anchor="AO-bit-iana" title="the USE of the OPT record TTL field for AO bit">
+      <figure anchor="AT-bit-iana" title="the USE of the OPT record TTL field for AT bit">
         <artwork>
         <![CDATA[
                  +0 (MSB)                +1 (LSB)
          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
       0: |   EXTENDED-RCODE      |       VERSION         |
          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      2: |DO|AO|                 Z                       |
+      2: |DO|AT|                 Z                       |
          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
         ]]>
         </artwork>
@@ -706,9 +706,9 @@ query |             | No     |             | response
     <t>
        ATR proposed in this memo is a server-side function which 
        requires no change in resolver, so it is not required that 
-       resolver should recognized or use AO bit. But it may helpful 
+       resolver should recognized or use AT bit. But it may helpful 
        for some special cases where a resolver is able to recognized 
-       or use AO bit. </t>
+       or use AT bit. </t>
     <t>
        One case is that when receiving a ATR response a ATR-aware 
        resolver can adopt a "happyeyeballs" strategy by opening a separate 
@@ -723,7 +723,7 @@ query |             | No     |             | response
        Another case is that a ATR-aware resolver is able to indicate 
        its support for ATR to prudent servers who do not reply ATR 
        response to every query and resolver. If that requirement is 
-       valid, it is possible for resolver to re-use the AO bit defined 
+       valid, it is possible for resolver to re-use the AT bit defined 
        in this memo as a indication asking ATR response from the server. 
      </t>
      <t>  

@@ -685,14 +685,14 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 Author's Address
 
-  Linjian Song
-  Beijing Internet Institute
-  Floor-2, Building-5, Digital Planet, Courtyard-58, Jing Hai Wu Lu, BDA
-  Beijing  101111
-  P. R. China
+   Linjian Song
+   Beijing Internet Institute
 
-  Email: songlinjian@gmail.com
-  URI:   http://www.biigroup.com/
+   Email: songlinjian@gmail.com
+   URI:   http://www.biigroup.com/
+
+
+
 
 
 

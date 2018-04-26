@@ -7,14 +7,13 @@
      An alternate method (rfc include) is described in the references. -->
 
 <!ENTITY RFC1035 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.1035.xml">
-<!ENTITY RFC2671 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2671.xml">
 <!ENTITY RFC6891 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6891.xml">
 <!ENTITY RFC7872 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7872.xml">
 <!ENTITY RFC7873 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7873.xml">
 
+
 <!ENTITY I-D.taylor-v6ops-fragdrop SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-taylor-v6ops-fragdrop-02.xml">
-<!ENTITY I-D.ietf-dnsop-respsize SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-ietf-dnsop-respsize-15.xml">
-<!ENTITY I-D.andrews-tcp-and-ipv6-use-minmtu SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-andrews-tcp-and-ipv6-use-minmtu-04.xml">
+
 
 ]>
 <?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
@@ -45,11 +44,11 @@
 <!-- end of list of popular I-D processing instructions -->
 <?rfc comments="no" ?>
 <?rfc inline="yes" ?>
-<rfc category="info" docName="draft-song-atr-large-resp-00" ipr="trust200902">
+<rfc category="std" docName="draft-song-atr-large-resp-01" ipr="trust200902">
 
   <front>
 
-    <title>ATR: Additional Truncated Response for Large DNS Response </title>
+    <title>ATR: Additional Truncation Response for Large DNS Response </title>
 
     <author fullname="Linjian Song" initials="L." surname="Song">
       <organization>Beijing Internet Institute</organization>
@@ -78,8 +77,8 @@
         As the increasing use of DNSSEC and IPv6, there are more 
         public evidence and concerns on IPv6 fragmentation issues 
         due to larger DNS payloads over IPv6. This memo introduces an 
-        simple improvement on authoritative server by replying additional 
-        truncated response just after the normal large response.  
+        simple improvement on DNS server by replying an additional 
+        truncated response just after the normal fragmented response.  
       </t>
 
       <t>REMOVE BEFORE PUBLICATION: The source of the document with test script 
@@ -96,13 +95,17 @@
 
       <t>
         Large DNS response is identified as a issue for a 
-        long time. It has been regarded mainly as a issue 
-        or limitation on authoritative server (delegation) 
-        as <xref target="I-D.ietf-dnsop-respsize"/> introduced. 
-        As the increasing use of DNSSEC and IPv6, there are 
-        more public evidence and concerns on resolver's 
-        suffering due to packets dropping caused by IPv6 
-        fragmentation in DNS. 
+        long time. There is an inherent mechanism defined in 
+        <xref target="RFC1035" /> to handle large DNS response 
+        (larger than 512 octets) by indicating (set TrunCation bit) 
+        the resolver to fall back to query via TCP. Due to the fear of 
+        cost of TCP, EDNS(0) <xref target="RFC6891" /> was 
+        proposed which encourages server to reponse larger 
+        response instead of falling back to TCP. However, as the 
+        increasing use of DNSSEC and IPv6, there are more public 
+        evidence and concerns on resolver's suffering due to packets 
+        dropping caused by IPv6 fragmentation in DNS due to large 
+        DNS response. 
       </t>
   
       <t>  
@@ -112,109 +115,64 @@
         <xref target="RFC7872"/> reported more than 30% drop rates for sending 
         fragmented packets. Regarding IPv6 fragmentation issue due 
         to larger DNS payloads in response, one measurement <xref target="IPv6-frag-DNS"/>
-        reported 37% of endpoints using IPv6-capable DNS resolver 
-        can not receive a fragmented IPv6 response over UDP.
+        reported 35% of endpoints using IPv6-capable DNS resolver 
+        can not receive a fragmented IPv6 response over UDP. Moreover, 
+        most of the underlying issues with fragments are unrevealed 
+        due to good redundancy and resilience of DNS. It is hard for DNS 
+        client and server operators to trace and locate the issue when 
+        fragments are blocked or dropped. The noticeable DNS failures 
+        in users experience are just the tip of the iceberg.
       </t>
 
+       <t> 
+        Depending on retry model, the resolver 
+        failing to receive fragmented response may experience long 
+        latency or failure due to timeout and reties. One typical case 
+        is that the resolver finally got the answer after several retires 
+        and it falls back to TCP after deceasing the payload size in EDNS0. 
+        To avoid that issue, some authoritative servers may adopt a policy 
+        ignoring the UDP payload size in EDNS0 extension and always 
+        truncating the response when the response size is large than a 
+        expected one. However one study <xref target="Not-speak-TCP"/> 
+        showed that about 17% of resolvers in the samples can not ask a 
+        query in TCP when they receive truncated response. It seems a dilemma 
+        to choose hurting either the users who can not receive fragmentation 
+        or the users without TCP capacity.There is also some voice of "moving 
+        all DNS over TCP". But It is generally desired that DNS can keep 
+        the efficiency and high performance by using DNS UDP in most of 
+        time and fallback as soon as possible to TCP if necessary for some 
+        corner case.
+       </t>
 
-      <t>
-        Some workarounds and short-term solutions are proposed. 
-        One is to continue to keep the response within a safe 
-        boundary, 512 octets for IPv4 and 1232 octets for IPv6 
-        (IPv6 MTU minus IPv6 header and UDP header). It avoids 
-        fragmentation, but it requires TCP and UDP applications 
-        to fit this limitation explicitly. Currently coordination 
-        between IP layer and upper layer still do not go well. For 
-        example the draft <xref target="I-D.andrews-tcp-and-ipv6-use-minmtu"/> 
-        viewed it as a problem that TCP fails to respect IPV6_USE_MIN_MTU. </t>
-
-       <t>   
-        Still, some cases are hard to avoid, for example the coming KSK 
-        rollover which will produce 1424 octets DNS response containing 
-        the new key and signature. To encounter this problem, some root 
-        servers (A, B, G and J) implemented countermeasures by truncating 
-        the response once the large IPv6 packet surpasses 1280 octets <xref target="root-stars"/>. But it is reported that 17% resolvers is not 
-        capable to send query via TCP <xref target="IPv6-frag-DNS"/> 
-        (It is also possbile that the middle boxes drop the tcp queries). 
-        It becomes a dilemma to choose hurting the users who can not 
-        receive fragmentation or users without TCP capacity. 
-      </t>
-
-       <t>
-        To relieve the dilemma in short term, this memo introduces an 
-        small improvement on DNS responding process by replying Additional 
-        Truncated Response (ATR) just after the normal response.
-        The original design of ENDS0 and Truncation mechanism for Large response 
-        are orthogonal. ATR intends to decouple the two. In ATR EDNS0 and TCP 
-        fall-back can work independently according to Authoritative server's 
-        requirement. 
-      </t>
-
-      <t>
-        ATR targets to relieve the hurt of resolver (both stub and recursive 
-        resolver) from the position of server (both authoritative and 
+       <t>To relieve the problem, this memo introduces an small improvement 
+        on DNS responding process by replying Additional Truncated Response (ATR) just after a normal large response which is to be fragmented. Generally speaking ATR provides a way to decouple the EDNS0 and TCP fallback in which they can work independently according to the server operator's requirement. SO one goal of ATR is to relieve the hurt of resolver (both stub and recursive resolver) from the position of server (both authoritative and 
         recursive server). It does not require any changes on resolver 
         and has a deploy-and-gain feature to encourage operators to 
         implement it to benefit their resolvers.  
        </t>
 
       <t>
-        ATR can be also used as a measurement tool for those operators 
-        who would like to know how much and which resolvers can not 
-        receive IPv6 fragmented response. They can turn on the ATR function 
-        occasionally and record the TCP connection it received during the 
-        period. The data may be helpful to do some fine-grained analysis 
-        between different NS servers and provide ATR to specific 
-        group of resolvers.
+        Another goal of ATR is to help troubleshooting for DNS operators 
+        where ATR can be deployed as a measurement tool. A flag bit is 
+        required in EDNS0 OPT header to distinguish ATR response from 
+        a ordinary truncated response. A resolver (or troubleshooter) 
+        can tell if there is any fragment not received in a certain 
+        transaction by capturing that flag bit. On the server side, 
+        the operator can turn on the ATR function occasionally for 
+        some resolvers and record the TCP connection it received 
+        during the period. The data may be helpful to do some 
+        fine-grained analysis to evaluate the performance among different 
+        name servers, and provide ATR to specific group of resolvers.
         </t> 
 
-       <t>
-        Note that the methodology of ATR can be extended to support 
-        other transport protocol like DNS over HTTP(s), DNS over QUIC, if they 
-        become one optional transport for DNS.</t>
-    
+        <t>
+        Note that in Appendix A of this memo there is a brief 
+        introduction and reference to the study done by APNIC 
+        on how well does ATR actually work. It may help people 
+        to understand what the benefit and tradeoff that ATR brings.</t>
 
     </section>
-
-    <section title="EDNS0 and DNS TCP">
-      <t>
-        DNS has an inherent mechanism defined in <xref target="RFC1035" /> 
-        to handle large DNS response by indicating (set TrunCation bit) 
-        the resolver to fall back to query via TCP. However, due 
-        to the fear of cost of TCP, TCP fall-back in DNS 
-        was in negative position from the very beginning of DNS. 
-        people had to seek another way to handle large DNS response. 
-      </t>
-      <t>
-        EDNS(0) <xref target="RFC2671" /> was introduced as a cure 
-        for the issue of large DNS response and TCP fall back  
-        firstly in 1999 and obsoleted by <xref target="RFC6891" /> 
-        in 2013. The basic idea of EDNS(0) is to introduce a 
-        channel for resolver and authoritative server to negotiate 
-        an appropriate DNS payload size in end-to-end approach. 
-      </t>
-
-      <t>
-        The intention of EDNS(0) is to avoid TCP fall back. So 
-        the use of EDNS(0) make TCP fall-back rare, 
-        which in turn gives people a wrong implication that 
-        EDNS(0) is more advanced than DNS TCP and DNS TCP is 
-        not necessary if EDNS(0) is already supported for both 
-        resolver and authoritative server. Plus the fear of 
-        "poor" TCP performance, DNS TCP function is stripped 
-        even for modern DNS implementations. An measurement 
-        study <xref target="Not-speak-TCP"/>showed 
-        that about 17% of resolvers in the samples can not ask 
-        a query in TCP when they receive truncated response.</t> 
-      <t>
-        Ironically today when TCP is recalled as a solutions to large 
-        DNS response, the installed base of resolver without TCP 
-        function (or the middle box stops DNS TCP connections) become a 
-        real issue which should be consider. 
-      </t>
-
-    </section>
-    <section title="The ATR mechanism">
+    <section title="The ATR mechanism" anchor="ATR_mechanism">
 
       <t>
         The ATR mechanism is very simple that it involves a ATR module in 
@@ -225,27 +183,26 @@
       <figure anchor="components" title="High-Level Testbed Components">
         <artwork>
           <![CDATA[
-
-A DNS query +-------------+        +-------------+
-            |             | No     |             |  Normal response
-     +------>  Truncation +-------->     ATR     +------------->
-            |    loop     |        |    Module   |
-            | truncation? |        | truncation? |
-            +-------------+        +-------------+
-                yes|                   yes|         +-----+
-                   |                      +---------+timer+---->
-                   |                                +-----+
-                   |                          Truncated Response
-                   +---------------------------->
-                    Truncated Response
-
+A DNS +-------------+        +-------------+  Normal
+query |             | No     |             | response
++------>  Truncation +-------->     ATR     +--------->
+      |    loop     |        |    Module   |
+      | truncation? |        | truncation? |
+      +-------------+        +-------------+
+          yes|                   yes|     +-----+
+             |                      +-----+timer+-->
+             |                            +-----+
+             |                      Truncated Response
+             +--------------->
+              Truncated Response
         ]]>
         </artwork>
       </figure>
       <t>
         The ATR responding process goes as follows:
       </t>
-        <t><list style="symbols">
+        <t>
+          <list style="symbols">
 
         <t>1) When an authoritative server receives a query 
         and enters the responding process, it first go through the normal 
@@ -254,23 +211,28 @@ A DNS query +-------------+        +-------------+
         If no, it enters the ATR module.</t>
 
         <t>2) In ATR module, similar like truncation loop, the size of response is 
-        compared with a fixed size. If the response of a query is larger than 
-        a certain value, 1220 octets for example, the server firstly sends
-        the normal response and then coin a truncated response with the same 
-        ID of the query.</t>
+        compared with a fixed size called ATR payload size. If the response of a 
+        query is larger than ATR payload size, the server firstly sends the normal 
+        response and then coin a truncated response with the same ID of the query. 
+        </t>
 
-        <t>3) The server can send the coined truncated response in not time. 
-        But considering the possibility of network reordering, it is 
-        suggested a timer to delay the second truncated response to around 
-        10 millisecond which can be configured by local operation.</t>
-      </list></t>
-
+        <t>3) The server can reply the coined truncated response in no time. 
+        But considering the possible impact of network reordering, it is 
+        suggested a timer to delay the second truncated response, for example
+        10~50 millisecond which can be configured by local operation.</t>
+      </list>
+       </t>
+       <t>
+        Note that the choice of ATR payload size and timer SHOULD be configured locally. And 
+        the operational guidance is discussed in<xref target="ATR-payload-size"/> and 
+        <xref target="ATR-timer"/> respectively.
+      </t>
         <t>
-        There are three cases when ATR are deployed in the authoritative sever:
+        There are three cases when a resolver send query to an ATR server in which the server will generate a large response with fragments:
       </t>
       <t><list style="symbols">
       <t>
-        Case 1: A resolver (or sub-resolver) will receive both the large response 
+        Case 1: a resolver (or sub-resolver) will receive both the large response 
         and a very small truncated response in sequence. It will happily 
         accepts the first response and drop the second one because the transaction 
         is over. 
@@ -281,25 +243,250 @@ A DNS query +-------------+        +-------------+
         in no time. </t>
 
         <t>
-        Case 3: For those (probably 30%*17% of them) who can not speak TCP and sitting 
-        behind a firewall stubbornly dropping fragments. Just say good luck to them!
+        Case 3: For those (probably 30%*17% of them) who can not speak TCP and sitting behind a firewall stubbornly dropping fragments. Just say good luck to them!
         </t>
         </list></t>
+
         <t>
-        Especially regarding the coming KSK rollover, if the root server implements 
-        ATR rather than setting IPv6-edns-size to 1220 octets, it would be helpful for 
-        resolver without TCP capacity, because it still has a fair chance to receive 
-        the large response. </t>
+        In the case authoritative server truncated all response surpass certain value , for example setting IPv6-edns-size to 1220 octets, ATR will helpful for 
+        resolver with TCP capacity, because the resolver still has a fair chance to receive the large response. The measurement done in APNIC (in Appendix A) shows that ...</t>
+        </section>
+
+
+    <section title="Indicating a ATR response">
+
+      <t>
+        As introduced in ATR it is necessary to distinguish ATR response 
+        in a special way from a ordinary truncated response. It enables 
+        resolver operators to log cases where ATR responses is received 
+        without a (reassembled) UDP response to a query. Without an 
+        indicator that distinguishes ATR response, there would be no 
+        way to avoid false alarms from authoritative servers that always 
+        and only return truncated responses when the message exceeds some 
+        size. It is actually the use case where Google RDNS is considering. 
+        Google RDNS would like to use such indications to flag problematic 
+        name servers where RDNS should restrict maximum EDNS to a lower 
+        value than the default 4096 that currently used.
+      </t>
+
+      <t>
+        A simple way for that indicator of ATR response is to define a 
+        bit in the Z field on the EDNS0 OPT header in the response. This 
+        has the virtue of simplicity, and only a minimal risk of breaking 
+        existing implementations. This bit is referred to as the "ATR OK" (AO) 
+        bit.  In the context of the EDNS0 OPT meta-RR, just following the 
+        DO bit, the AO bit is the second bit of the third and fourth bytes 
+        of the "extended RCODE and flags" portion (section 6.1.3 of RFC6891) 
+        of the EDNS0 OPT meta-RR, structured as follows:
+      </t>
+      <figure anchor="AO-bit" title="Wire format of extended RCODE and flags with AO bit">
+        <artwork>
+        <![CDATA[
+                 +0 (MSB)                +1 (LSB)
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+      0: |   EXTENDED-RCODE      |       VERSION         |
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+      2: |DO|AO|                 Z                       |
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+
+        ]]>
+        </artwork>
+      </figure>
+      <t>
+       The logic of AO bit is simple that setting the AO bit to 
+       one in a response indicates to the resolver that the response 
+       is an ATR response. The DO bit cleared(set to zero) indicates 
+       the response is a ordinary response. Note that AO bit and TC 
+       bit SHOULD be set and appear in the response as a pair. The 
+       response will be ignored if only AO bit is set.
+     </t>
+
+     <t>
+      The indication of ATR defined in this memo is for measurement and 
+      logging purpose. But it is possible used by resolver operator 
+      in other aspects, because it signals the resolver the large 
+      response is fragmented and dropped on the path. The resolver 
+      could be encouraged to act more actively to get the answer 
+      depending on local policy. More is discussed in <xref target="Resolver-Consideration"/>.
+     </t>
+   
+    </section>
+
+    <section title="Operational considerations">
+
+      <t>
+        In this memo, only the behavior of ATR on authoritative 
+        server and the AO bit are specified as a standard. There 
+        are still empty spaces for operational issues, such as 
+        the parameter of the ATR timer and ATR payload size, 
+        and policies on when ATR is trigged to avoid side-effect.</t>
+
+        <section title="ATR timer" anchor="ATR-timer">
         <t>
-        As to case 2, there is one performance consideration on resolver side. 
-        It is about how resolver react to ATR when it receives only the truncated 
-        response. They can choose TCP right away or wait other NS servers to respond. 
-        Normally the fragments are dropped in the ASes along the path. A different NS 
-        server with different path may avoid "bad" ASes. But in the extreme case, 
-        implementation may first try UDP queries with all NS servers, but all fail 
-        due to the dropped fragments. It may end up with "no servers could be reached" 
-        or revert automatically to TCP which also introduce delay. So if allowed by 
-        local policy, a diligent resolver can also emit queries via both channels.</t>  
+        As introduced in <xref target="ATR_mechanism"/> ATR timer is a 
+        way to avoid the impact of network reordering(RO). The value of the 
+        timer is critical, because if the delay is too short, the ATR response 
+        may arrived earlier than the fragmented response (the first piece), 
+        the resolver will fall back to TCP bearing the cost which should 
+        have been avoid. If the delay is too long, the client may timeout 
+        and retry which negates the incremental benefit of ATR. Generally 
+        speaking, the delay of the timer should be "long enough, but not too 
+        long".</t>
+      <t>
+        To the best knowledge of author, the nature of RO is characterized 
+        as follows hopefully helping potential ATR users understand RO and how 
+        to operate ATR appropriately in this regard.
+      <list style="symbols">
+      <t>
+        1) RO is mainly caused by the parallelism in Internet components and 
+        links other than network anomaly <xref target="Bennett"/>. It is 
+        observed that RO is highly related to the traffic load of Internet 
+        components. So RO will long exists as long as the traffic load increase 
+        and the parallelism is used to enhance network throughput.
+      </t>
+       <t>
+        2) The probability of RO varies largely depending on the different 
+        tests samples from different work. Some are below 2% <xref target="Paxson"/> 
+        <xref target="Tinta"/> and some are above 90% <xref target="Bennett"/> 
+        which is testing in . It is concluded that the RO is site-dependent and 
+        path-dependent. It is observe in that when RO does, it is mostly exhibited 
+        consistently in a small percentages of the paths. It is also observed that 
+        higher rates smaller packets were more prone to RO because the sending 
+        inter-spacing time was small.
+      </t>
+      <t>
+        3) It is reported that the inter-arrival time of RO varies from a 
+        few milliseconds to multiple tens of milliseconds<xref target="Tinta"/>. 
+        And the larger the packet the larger the inter-arrival time, since larger 
+        packets will take longer to be transmitted.</t>
+        </list>
+        </t>
+        <t>
+        Reasonably we can infer that firstly RO should be taken into account 
+        because it long exists due to middle Internet components which 
+        can not be avoided by end-to-end way. Secondly the mixture of larger 
+        and small packets in ATR case will increase the inter-arrival time 
+        of RO as well as the its probability. The good news is that the RO is 
+        highly site and path specific and persistent which means the ATR operator 
+        is able to identify a few sites and paths, setup a tunable timer setting 
+        for them, or just put them into a blacklist without replying ATR response.
+        </t>
+
+        <t>
+        Based on the above analysis it is hard to provide a perfect value of ATR timer 
+        for all ATR users due to the diversity of networks. It seems OK to set 
+        the timer with a range from ten to hundreds ms, just below the timeout 
+        setting of typical resolver. Is suggested that a decision should be made as 
+        operator-specific according to the statistic of the RTT of their users. 
+        Some measurement shown <xref target="Brownlee"/><xref target="Liang"/> 
+        the mean of response time is below 50 ms for the sites with lots of 
+        anycast instance like L-root, .com and .net name servers. For that sites, 
+        delay less than 50 ms is appropriate.
+        </t>
+        </section>
+
+        <section title="ATR payload size" anchor="ATR-payload-size">
+
+        <t> 
+          Regarding the operational choice for ATR payload size, there are 
+          some good input from APNIC study on how to react to large response 
+          for authoritative server. The only difference is that ATR focuses 
+          on the second response after the ordinary response.
+        </t>
+
+        <t>
+          For IPv4 DNS server, it is suggested in APNIC study[] that do not 
+          truncate and fragment IPv4 UDP response with a payload up to 
+          1472 octets which is Ethernet MTU(1500) minus the sum of IPv4 header(20) 
+          and UDP header(8). The reason is to avoid gratuitously fragmenting outbound
+          packets or TCP fallback at the source. </t>
+        <t>
+          In the case of ATR, the first ordinary response is emitted without knowing it 
+          is fragmented or not on the path. If it is set a large value up to 1472 
+          octets, packets size between 512 octets and ATR payload size will 
+          probably get fragmented by aggressive firewalls which leads losing 
+          the benefit of ATR. If ATR payload size set exactly 512 octets, 
+          in most of case ATR response and the single unfragmented packets are 
+          under a race at the risk of RO. </t>
+        <t>
+          Given IPv4 fragmentation issue is not so serious compared to IPv6, 
+          it is suggested in this memo to set ATR payload size as 1472 octets 
+          which means ATR only fit large DNS response larger than 1500 octets in IPv4. 
+        </t>
+
+        <t>
+          For IPv6 DNS server, similar with IPv4, it is suggested that do 
+          not truncate IPv6 UDP packets with a payload up to 1,452 octets which 
+          is Ethernet MTU(1500) minus the sum of IPv6 header(40) and UDP header(8). 
+          1452 octets is chosen to avoid TCP fallback in the context that at test 
+          against current root servers shows most TCP MSS is not set probably at 
+          that time.   
+        </t>
+         
+        <t>
+          In the case of ATR considering the second truncated response, it is 
+          intentionally trigger TCP fallback in case of fragments dropping on 
+          the path. So a smaller size: 1280 octets should be chose as ATR payload 
+          size to trigger necessary TCP fallback. As a complementary requirement 
+          with ATR, the TCP MSS should be set 1220 octets to avoid Packet Too Big 
+          ICMP message as suggested in APNIC study. 
+        </t>
+
+        <t>
+          In conclusion, it is recommended that in IPv4 ATR payload size SHOULD be 
+          1475 octets, and in IPv6 the value SHOULD be 1280 octets. 
+        </t>
+
+        </section>
+
+        <section title="The aggresiveness of ATR">
+        
+        <t>
+        There is a concern ATR sends TC=1 response too aggressively. One of the 
+        idea to mitigate this aggressiveness, ATR may respond TC=1 responses 
+        at a low possibility, such as 10%. 
+        </t>
+        <t>
+        Another way to mitigating is to reply ATR response selectively. It is 
+        observed that RO and IPv6 fragmentation issues are path specific and 
+        persistent due to the Internet components and middle box. So it is 
+        reasonable to keep a ATR whitelist by counting the retries and 
+        recording the IP destination address of that large response causing 
+        many retires. ATR only acts to those queries from the IP address in 
+        the whitelist.
+        </t>
+        </section>
+    </section>
+
+    <section title="Considerations on Resolver awareness of ATR" anchor="Resolver-Consideration">
+    
+    <t>
+       ATR proposed in this memo is a server-side function which 
+       requires no change in resolver, so it is not required that 
+       resolver should recognized or use AO bit. But it may helpful 
+       for some special cases where a resolver is able to recognized 
+       or use AO bit. </t>
+    <t>
+       One case is that when receiving a ATR response a ATR-aware 
+       resolver can adopt a "happyeyeballs" strategy by opening a separate 
+       transaction sending the query via TCP instead of falling back to 
+       TCP and closing the original UDP transaction. Listen to port 53 
+       on both TCP and UDP port 53 will enhance the availability 
+       and reduce the latency. It will add more tolerance to network 
+       reordering issue. However, it should be taken into account about 
+       the balance of resolver's resource. Less priority should be given  
+       to that function when the resolver is "busy".</t>
+      <t>
+       Another case is that a ATR-aware resolver is able to indicate 
+       its support for ATR to prudent servers who do not reply ATR 
+       response to all queries and resolvers. If that requirement is 
+       valid, it is possible for resolver to re-use the AO bit defined 
+       in this memo as a indication asking ATR response from the server. 
+     </t>
+     <t>  
+       However the two cases are currently outside of the scope of server-ATR 
+       specification. It needs further discussion. 
+      </t>
 
     </section>
   <section title="Security Considerations">
@@ -309,35 +496,6 @@ A DNS query +-------------+        +-------------+
     and RRL on authoritative may be possible solutions</t>
 
   </section>
-
-   <section title="Author's Commnets">
-
-    <t>REMOVE BEFORE PUBLICATION: </t>
-
-    <t>
-      When drafting this proposal,there is a question in 
-      author's mind about the benefit of ATR which may be 
-      too trivial to implement. Resolver can retire many 
-      times(12 times for root) to other NS servers if one 
-      path to particular server failed. The performance 
-      comparison between retries with other NS server and 
-      ATR is hard to measure. But it is still valuable in 
-      two cases:
-    </t>
-
-    <t>
-    1) For those server (like root) implemented or plan to implement "always-truncation" for large packets, they can benefit from 
-    not doing unnecessary TCP fall back.  </t>
-
-    <t>
-    2) For those area or countries where only one or two NS servers 
-    instance are deployed (root in China for example), stick to the 
-    local root server (with around 10ms latency for UDP and roughly 
-    around 30ms for TCP) is better than select another NS server far 
-    away (with around 200ms latency) </t>
- 
-
-   </section>
 
     <section title="IANA considerations">
       <t>No IANA registration work is required for the time being</t>
@@ -349,35 +507,16 @@ A DNS query +-------------+        +-------------+
     
     </t>
   </section> <!-- Acknowledgments -->
-  
   </middle>
 
   <back>
 
     <references title="References">
-      &RFC1035; &RFC2671;&RFC6891;&RFC7872;&RFC7873;&I-D.taylor-v6ops-fragdrop;
-      &I-D.andrews-tcp-and-ipv6-use-minmtu;&I-D.ietf-dnsop-respsize;
+      &RFC1035; &RFC6891;&RFC7872;&RFC7873;
+      &I-D.taylor-v6ops-fragdrop;
+  
 
 
-     <reference anchor="SAC016">
-            <front>
-                <title>Testing Firewalls for IPv6 and EDNS0 Support</title>
-                <author>
-                    <organization>ICANN Security and Stability Advisory Committee</organization>
-                </author>
-                <date year="2007" />
-            </front>
-     </reference>
-
-      <reference anchor="SAC035">
-            <front>
-                <title>DNSSEC Impact on Broadband Routers and Firewalls </title>
-                <author>
-                    <organization>ICANN Security and Stability Advisory Committee</organization>
-                </author>
-                <date year="2008" />
-            </front>
-     </reference>
      <reference anchor="IPv6-frag-DNS" target="https://blog.apnic.net/2017/08/22/dealing-ipv6-fragmentation-dns">
             <front>
                 <title>Dealing with IPv6 fragmentation in the DNS</title>
@@ -388,6 +527,57 @@ A DNS query +-------------+        +-------------+
                 <date year="2017" month="August" day="22"/>
             </front>
      </reference>  
+          <reference anchor="Paxson" target="https://blog.apnic.net/2017/08/22/dealing-ipv6-fragmentation-dns">
+            <front>
+                <title>End-to-End Internet Packet Dynamics</title>
+                <author fullname= "Vern Paxson">
+                  <organization></organization>
+                  <address></address>
+                </author>
+                <date year="1999" month="August" day="22"/>
+            </front>
+     </reference>  
+
+          <reference anchor="Tinta" target="https://blog.apnic.net/2017/08/22/dealing-ipv6-fragmentation-dns">
+            <front>
+                <title>Characterizing End-to-End Packet Reordering with UDP Traffic</title>
+                <author fullname= "Sandra P. Tinta">
+                  <organization></organization>
+                  <address></address>
+                </author>
+                <date year="2009" month="August" day="18"/>
+            </front>
+     </reference>  
+      <reference anchor="Bennett" target="https://blog.apnic.net/2017/08/22/dealing-ipv6-fragmentation-dns">
+            <front>
+                <title>Packet Reordering is Not Pathological Network Behavior</title>
+                <author fullname= "Jon C. R. Bennett">
+                  <organization></organization>
+                  <address></address>
+                </author>
+                <date year="1999" month="December"/>
+            </front>
+     </reference>
+           <reference anchor="Liang" target="https://netsec.ccert.edu.cn/duanhx/files/2013/02/latency.pdf">
+            <front>
+                <title>Measuring Query Latency of Top Level DNS Servers</title>
+                <author fullname= "Jinjin Liang">
+                  <organization>Tsinghua University</organization>
+                  <address></address>
+                </author>
+                <date year="2013" month="February"/>
+            </front>
+     </reference>  
+           <reference anchor="Brownlee" target="http://www.caida.org/publications/papers/2002/nsrtd/nsrtd.pdf">
+            <front>
+                <title>Response time distributions for global name servers</title>
+                <author fullname= "Nevil Brownlee">
+                  <organization></organization>
+                  <address></address>
+                </author>
+                <date year="2002" />
+            </front>
+     </reference>    
       <reference anchor="Not-speak-TCP" target="https://labs.ripe.net/Members/gih/a-question-of-dns-protocols">
             <front>
                 <title>A Question of DNS Protocols</title>
@@ -398,17 +588,7 @@ A DNS query +-------------+        +-------------+
                 <date year="2013" month="August" day="28"/>
             </front>
      </reference>  
-     <reference anchor="root-stars" target="https://blog.apnic.net/2016/11/15/scoring-dns-root-server-system/">
-            <front>
-                <title>Scoring the DNS Root Server System</title>
-                <author fullname= "Goeff Huston">
-                  <organization></organization>
-                  <address></address>
-                </author>
-                <date year="2016" month="November" day="15"/>
-            </front>
-     </reference>  
-
+    
       <reference anchor="ATR-Github" target="https://github.com/songlinjian/DNS_ATR">
        <front>
         <title>XML source file and test script of DNS ATR</title>
@@ -419,8 +599,83 @@ A DNS query +-------------+        +-------------+
       </front>
     </reference>
 
+      <reference anchor="How-ATR-Work" target="https://blog.apnic.net/2018/04/16/how-well-does-atr-actually-work/">
+            <front>
+                <title>How well does ATR actually work?</title>
+                <author fullname= "Goeff Huston">
+                  <organization></organization>
+                  <address></address>
+                </author>
+                <date year="2018" month="Apirl" day="16"/>
+            </front>
+     </reference>  
+
      </references>
 
+    <section title="How well does ATR actually work?">
+
+      <t>It is worth of mentioning APNIC report<xref target="How-ATR-Work"/> 
+      on "How well does ATR actually work?" done by Geoff Huston and 
+      Joao Damas after 00 version of ATR draft. It was reported firstly 
+      in IEPG meeting before IETF 101 and then posted in APNIC blog later.
+      </t>
+
+      <t>It is said the test is performed 
+      over 55 million endpoints, using an online ad distribution 
+      network to deliver the test script across the Internet. 
+      The result is positive that ATR works! From the end users' 
+      perspective, in some 9% of IPv4 cases the use 
+      of ATR by the server will improve the speed of resolution of a 
+      fragmented UDP response by signalling to the client an immediate 
+      switch to TCP to perform a re-query. The IPv6 behavior would 
+      improve the resolution times in 15% of cases.</t>
+
+      <t>
+        It also analyses the pros and cons of ATR. On one hand, It is 
+        said that ATR certainly looks attractive if the objective is 
+        to improve the speed of DNS resolution when passing large DNS 
+        responses. And ATR is incrementally deployable in favor of 
+        decision made by each server operator. On another hand, ATR 
+        also has some negative factors. One issue is adding another DNS 
+        DDoS attack vector due to the additional packet sent by ATR, 
+        (author's note : very small adding actually.) Another issue is 
+        risk of RO by the choice of the delay timer which is discussed 
+        fully in <xref target="ATR-timer"/>.    
+      </t>
+
+      <t>
+        As a conclusion, it is said that "ATR does not 
+        completely fix the large response issue. If a resolver cannot 
+        receive fragmented UDP responses and cannot use TCP to perform 
+        DNS queries, then ATR is not going to help. But where there are 
+        issues with IP fragment filtering, ATR can make the inevitable 
+        shift of the query to TCP a lot faster than it is today. But it 
+        does so at a cost of additional packets and additional DNS 
+        functionality". "If a faster DNS service is your highest priority, 
+        then ATR is worth considering", said at the end of this report 
+      </t>
+
+      <t>
+        Their work and report definitely makes ATR more shiny attracting 
+        attention in the community. However, objectively speaking, there 
+        are still some work can be done further on "How well does ATR 
+        actually work". For example, the test only counts the "success" 
+        case ("failure" otherwise) in which the "success" for Large UDP 
+        case can be achieved by normal retries. The latency of that retry 
+        effort is not taken into account. If not misunderstood, the test 
+        underestimates the benefit of ATR in terms of speed of response 
+        which is the shiny part.
+      </t>
+      <t>
+        Another missing part is about the ATR timer and RO impact. In APNIC 
+        test, 10 ms was adopted as the delay of ATR. It did not change the 
+        result of gains for users(9% for IPv4 and 15% for IPv6). But the 
+        cost of RO is not measured for majority cases in which ATR is not 
+        needed, say 87% in IPv4, and 79% in IPv6. So it overestimate ATR in 
+        this regards if RO cost is not taken into account. 
+      </t>
+
+    </section>
   </back>
 </rfc>
 

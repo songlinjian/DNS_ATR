@@ -411,51 +411,52 @@ query |             | No     |             | response
 
         <t> 
           Regarding the operational choice for ATR payload size, there are 
-          some good input from APNIC study on how to react to large response 
-          for authoritative server. The only difference is that ATR focuses 
-          on the second response after the ordinary response.
+          some good input from APNIC study <xref target="scoring-dns-root"/>on 
+          how to react to large DNS payload for authoritative server. The difference 
+          in ATR is that ATR focuses on the second response after the ordinary 
+          response.
         </t>
 
         <t>
-          For IPv4 DNS server, it is suggested in APNIC study[] that do not 
+          For IPv4 DNS server, it is suggested the study that do not 
           truncate and fragment IPv4 UDP response with a payload up to 
           1472 octets which is Ethernet MTU(1500) minus the sum of IPv4 header(20) 
-          and UDP header(8). The reason is to avoid gratuitously fragmenting outbound
-          packets or TCP fallback at the source. </t>
+          and UDP header(8). The reason is to avoid gratuitously 
+          fragmenting outbound packets and TCP fallback at the source. </t>
         <t>
-          In the case of ATR, the first ordinary response is emitted without knowing it 
-          is fragmented or not on the path. If it is set a large value up to 1472 
-          octets, packets size between 512 octets and ATR payload size will 
-          probably get fragmented by aggressive firewalls which leads losing 
-          the benefit of ATR. If ATR payload size set exactly 512 octets, 
-          in most of case ATR response and the single unfragmented packets are 
-          under a race at the risk of RO. </t>
+          In the case of ATR, the first ordinary response is emitted 
+          without knowing it be to fragmented or not on the path. 
+          If a large value is set up to 1472 octets, payload size between 
+          512 octets and the large value size will probably get fragmented 
+          by aggressive firewalls which leads losing the benefit of ATR. 
+          If ATR payload size set exactly 512 octets, in most of case ATR 
+          response and the single unfragmented packets are under a race at 
+          the risk of RO. </t>
         <t>
           Given IPv4 fragmentation issue is not so serious compared to IPv6, 
-          it is suggested in this memo to set ATR payload size as 1472 octets 
+          it is suggested in this memo to set ATR payload size 1472 octets 
           which means ATR only fit large DNS response larger than 1500 octets in IPv4. 
         </t>
 
         <t>
-          For IPv6 DNS server, similar with IPv4, it is suggested that do 
-          not truncate IPv6 UDP packets with a payload up to 1,452 octets which 
-          is Ethernet MTU(1500) minus the sum of IPv6 header(40) and UDP header(8). 
-          1452 octets is chosen to avoid TCP fallback in the context that at test 
-          against current root servers shows most TCP MSS is not set probably at 
-          that time.   
+          For IPv6 DNS server, similar to IPv4, the APNIC study is suggested 
+          that do not truncate IPv6 UDP packets with a payload up to 1,452 
+          octets which is Ethernet MTU(1500) minus the sum of IPv6 header(40) 
+          and UDP header(8). 1452 octets is chosen to avoid TCP fallback in 
+          the context that most TCP MSS in the root server is not set probably 
+          at that time.   
         </t>
          
         <t>
-          In the case of ATR considering the second truncated response, it is 
-          intentionally trigger TCP fallback in case of fragments dropping on 
-          the path. So a smaller size: 1280 octets should be chose as ATR payload 
-          size to trigger necessary TCP fallback. As a complementary requirement 
-          with ATR, the TCP MSS should be set 1220 octets to avoid Packet Too Big 
-          ICMP message as suggested in APNIC study. 
+          In the case of ATR considering the second truncated response, a smaller 
+          size: 1280 octets(IPv6 MTU for most network devices) should be chosen as 
+          ATR payload size to trigger necessary TCP fallback. As a complementary 
+          requirement with ATR, the TCP MSS should be set 1220 octets to avoid 
+          Packet Too Big ICMP message as suggested in the APNIC study. 
         </t>
 
         <t>
-          In conclusion, it is recommended that in IPv4 ATR payload size SHOULD be 
+          In short, it is recommended that in IPv4 ATR payload size SHOULD be 
           1475 octets, and in IPv6 the value SHOULD be 1280 octets. 
         </t>
 
@@ -472,45 +473,14 @@ query |             | No     |             | response
         Another way to mitigating is to reply ATR response selectively. It is 
         observed that RO and IPv6 fragmentation issues are path specific and 
         persistent due to the Internet components and middle box. So it is 
-        reasonable to keep a ATR whitelist by counting the retries and 
+        reasonable to keep a ATR "whitelist" by counting the retries and 
         recording the IP destination address of that large response causing 
         many retires. ATR only acts to those queries from the IP address in 
-        the whitelist.
+        the white list.
         </t>
         </section>
     </section>
 
-    <section title="Considerations on Resolver awareness of ATR" anchor="Resolver-Consideration">
-    
-    <t>
-       ATR proposed in this memo is a server-side function which 
-       requires no change in resolver, so it is not required that 
-       resolver should recognized or use AO bit. But it may helpful 
-       for some special cases where a resolver is able to recognized 
-       or use AO bit. </t>
-    <t>
-       One case is that when receiving a ATR response a ATR-aware 
-       resolver can adopt a "happyeyeballs" strategy by opening a separate 
-       transaction sending the query via TCP instead of falling back to 
-       TCP and closing the original UDP transaction. Listen to port 53 
-       on both TCP and UDP port 53 will enhance the availability 
-       and reduce the latency. It will add more tolerance to network 
-       reordering issue. However, it should be taken into account about 
-       the balance of resolver's resource. Less priority should be given  
-       to that function when the resolver is "busy".</t>
-      <t>
-       Another case is that a ATR-aware resolver is able to indicate 
-       its support for ATR to prudent servers who do not reply ATR 
-       response to all queries and resolvers. If that requirement is 
-       valid, it is possible for resolver to re-use the AO bit defined 
-       in this memo as a indication asking ATR response from the server. 
-     </t>
-     <t>  
-       However the two cases are currently outside of the scope of server-ATR 
-       specification. It needs further discussion. 
-      </t>
-
-    </section>
   <section title="Security Considerations">
     <t>
     There may be concerns on DDoS attack problem due to the fact that the 
@@ -547,7 +517,10 @@ query |             | No     |             | response
 
    <section title="Acknowledgments">
     <t>
-    
+    Thank Geoff Huston and Joao Damas for their testing 
+    work in APNIC lab on "How well does ATR actually work?". 
+    It gives ATR a new born. Akira Kato contributed 
+    ideas on operational consideration. 
     </t>
   </section> <!-- Acknowledgments -->
   </middle>
@@ -557,8 +530,6 @@ query |             | No     |             | response
     <references title="References">
       &RFC1035; &RFC6891;&RFC7872;&RFC7873;
       &I-D.taylor-v6ops-fragdrop;
-  
-
 
      <reference anchor="IPv6-frag-DNS" target="https://blog.apnic.net/2017/08/22/dealing-ipv6-fragmentation-dns">
             <front>
@@ -653,6 +624,17 @@ query |             | No     |             | response
             </front>
      </reference>  
 
+       <reference anchor="scoring-dns-root" target="https://blog.apnic.net/2016/11/15/scoring-dns-root-server-system/">
+            <front>
+                <title>Scoring the DNS Root Server System</title>
+                <author fullname= "Goeff Huston">
+                  <organization>APNIC</organization>
+                  <address></address>
+                </author>
+                <date year="2016" month="November" day="15"/>
+            </front>
+     </reference>  
+
      </references>
 
     <section title="How well does ATR actually work?">
@@ -660,21 +642,21 @@ query |             | No     |             | response
       <t>It is worth of mentioning APNIC report<xref target="How-ATR-Work"/> 
       on "How well does ATR actually work?" done by Geoff Huston and 
       Joao Damas after 00 version of ATR draft. It was reported firstly 
-      in IEPG meeting before IETF 101 and then posted in APNIC blog later.
+      in IEPG meeting before IETF 101 and then posted in APNIC Blog later.
       </t>
 
-      <t>It is said the test was performed 
-      over 55 million endpoints, using an online ad distribution 
-      network to deliver the test script across the Internet. 
-      The result is positive that ATR works! From the end users' 
-      perspective, in some 9% of IPv4 cases the use 
-      of ATR by the server will improve the speed of resolution of a 
-      fragmented UDP response by signalling to the client an immediate 
-      switch to TCP to perform a re-query. The IPv6 behavior would 
-      improve the resolution times in 15% of cases.</t>
+      <t>It is said the test was performed over 55 million endpoints, 
+        using an online ad distribution network to deliver the test 
+        script across the Internet. The result is positive that 
+        ATR works! From the end users' perspective, in some 9% of 
+        IPv4 cases the use of ATR by the server will improve the 
+        speed of resolution of a fragmented UDP response by signaling 
+        to the client an immediate switch to TCP to perform a 
+        re-query. The IPv6 behavior would improve the resolution 
+        times in 15% of cases.</t>
 
       <t>
-        It also analyses the pros and cons of ATR. On one hand, It is 
+        It also analyzed the pros and cons of ATR. On one hand, It is 
         said that ATR certainly looks attractive if the objective is 
         to improve the speed of DNS resolution when passing large DNS 
         responses. And ATR is incrementally deployable in favor of 
@@ -703,26 +685,57 @@ query |             | No     |             | response
         attention in the community. But it is found that there 
         are still something unknown on "How well does ATR 
         actually work". Firstly the test only counts the "success" 
-        case ("failure" otherwise) in which the "success" for Large UDP 
+        case ("failure" otherwise) in which the "success" for large UDP 
         case can be achieved by normal retries. The latency of that retries 
-        may saved by ATR is not taken into account. </t>
+        may reduced by ATR is not taken into account. </t>
       <t>
-        Secondly no measurement and analysis is done to compare ATR with TCP. 
+        Secondly more analysis could be done in future to compare ATR with TCP. 
         From the failure rate of users, we see ATR and TCP have similar performance
          (same for IPv4, and only 2% difference in IPv6). But there are resolvers who 
          are able to receive the fragments more sooner in ATR case , but 
-         fall back to TCP in always-truncation case. If not misunderstood, 
-        the two unknown parts underestimates the benefit of ATR in terms of speed of 
-        response.
+         they fall back to TCP in TCP case. If not misunderstood, 
+        the two unknown parts underestimates the benefit of ATR in terms 
+        of speed of response.
       </t>
       <t>
         The third unknown part is about the ATR timer and RO impact. In APNIC 
         test, 10 ms was adopted as the delay of ATR timer according to 00 version 
         of this draft. Different delay of ATR timer may not change the key result 
         on gains of ATR (9% for IPv4 and 15% for IPv6). But the cost of RO 
-        is not measured for majority cases in which ATR is not needed, say 
+        is not measured. In the majority cases ATR is not needed, say 
         87% in IPv4, and 79% in IPv6. So it overestimate ATR in this regards 
         if RO cost is not taken into account. 
+      </t>
+    </section>
+
+        <section title="Considerations on Resolver awareness of ATR" anchor="Resolver-Consideration">
+    
+    <t>
+       ATR proposed in this memo is a server-side function which 
+       requires no change in resolver, so it is not required that 
+       resolver should recognized or use AO bit. But it may helpful 
+       for some special cases where a resolver is able to recognized 
+       or use AO bit. </t>
+    <t>
+       One case is that when receiving a ATR response a ATR-aware 
+       resolver can adopt a "happyeyeballs" strategy by opening a separate 
+       transaction sending the query via TCP instead of falling back to 
+       TCP and closing the original UDP transaction. Listen to port 53 
+       on both TCP and UDP port 53 will enhance the availability 
+       and reduce the latency. It will add more tolerance to network 
+       reordering issue as well. However, it should be taken into account about 
+       the balance of resolver's resource. Less priority should be given  
+       to that function when the resolver is "busy".</t>
+      <t>
+       Another case is that a ATR-aware resolver is able to indicate 
+       its support for ATR to prudent servers who do not reply ATR 
+       response to every query and resolver. If that requirement is 
+       valid, it is possible for resolver to re-use the AO bit defined 
+       in this memo as a indication asking ATR response from the server. 
+     </t>
+     <t>  
+       However the two cases are currently outside of the scope of server-ATR 
+       specification. It needs further discussion. 
       </t>
 
     </section>

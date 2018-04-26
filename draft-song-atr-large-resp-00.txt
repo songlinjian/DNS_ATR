@@ -75,8 +75,8 @@ Table of Contents
    5.  Considerations on Resolver awareness of ATR . . . . . . . . .   9
    6.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
    7.  IANA considerations . . . . . . . . . . . . . . . . . . . . .   9
-   8.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   9
-   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   9
+   8.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  10
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
    Appendix A.  How well does ATR actually work? . . . . . . . . . .  11
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  12
 
@@ -196,27 +196,27 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
    The ATR responding process goes as follows:
 
-   o  1) When an authoritative server receives a query and enters the
+   o  When an authoritative server receives a query and enters the
       responding process, it first go through the normal truncation loop
       to see whether the size of response surpasses the EDNS0 payload
       size.  If yes, it ends up with responding a truncated packets.  If
       no, it enters the ATR module.
 
-   o  2) In ATR module, similar like truncation loop, the size of
-      response is compared with a fixed size called ATR payload size.
-      If the response of a query is larger than ATR payload size, the
-      server firstly sends the normal response and then coin a truncated
+   o  In ATR module, similar like truncation loop, the size of response
+      is compared with a fixed size called ATR payload size.  If the
+      response of a query is larger than ATR payload size, the server
+      firstly sends the normal response and then coin a truncated
       response with the same ID of the query.
 
-   o  3) The server can reply the coined truncated response in no time.
+   o  The server can reply the coined truncated response in no time.
       But considering the possible impact of network reordering, it is
       suggested a timer to delay the second truncated response, for
       example 10~50 millisecond which can be configured by local
       operation.
 
    Note that the choice of ATR payload size and timer SHOULD be
-   configured locally.  And the operational guidance is discussed
-   inSection 4.2 and Section 4.1 respectively.
+   configured locally.  And the operational guidance is discussed in
+   Section 4.2 and Section 4.1 respectively.
 
 
 
@@ -487,15 +487,15 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 7.  IANA considerations
 
-   No IANA registration work is required for the time being
+   EDNS(0) [RFC6891] defines 16 bits as extended flags in the OPT
+   record, these bits are encoded into the TTL field of the OPT record.
+   IETF Standards Action is required for assignments of new EDNS(0)
+   flags.
 
-8.  Acknowledgments
+   This document reserves one of these bits as the AO bit.  It is
+   requested that the second bit (left most) be allocated.  Thus the USE
+   of the OPT record TTL field would look like:
 
-9.  References
-
-   [ATR-Github]
-              "XML source file and test script of DNS ATR", September
-              2017, <https://github.com/songlinjian/DNS_ATR>.
 
 
 
@@ -505,6 +505,24 @@ Song                    Expires October 28, 2018                [Page 9]
 
 Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
+
+                    +0 (MSB)                +1 (LSB)
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+         0: |   EXTENDED-RCODE      |       VERSION         |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+         2: |DO|AO|                 Z                       |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+
+
+         Figure 3: the USE of the OPT record TTL field for AO bit
+
+8.  Acknowledgments
+
+9.  References
+
+   [ATR-Github]
+              "XML source file and test script of DNS ATR", September
+              2017, <https://github.com/songlinjian/DNS_ATR>.
 
    [Bennett]  "Packet Reordering is Not Pathological Network Behavior",
               December 1999, <https://blog.apnic.net/2017/08/22/dealing-
@@ -517,7 +535,7 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
               nsrtd.pdf>.
 
    [How-ATR-Work]
-              "How well does ATR actually work?", Apirl 2018,
+              APNIC, "How well does ATR actually work?", April 2018,
               <https://blog.apnic.net/2018/04/16/how-well-does-atr-
               actually-work/>.
 
@@ -537,6 +555,13 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
               <https://netsec.ccert.edu.cn/duanhx/files/2013/02/
               latency.pdf>.
 
+
+
+Song                    Expires October 28, 2018               [Page 10]
+
+Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+
+
    [Not-speak-TCP]
               "A Question of DNS Protocols", August 2013,
               <https://labs.ripe.net/Members/gih/a-question-of-dns-
@@ -554,13 +579,6 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
               for DNS (EDNS(0))", STD 75, RFC 6891,
               DOI 10.17487/RFC6891, April 2013, <https://www.rfc-
               editor.org/info/rfc6891>.
-
-
-
-Song                    Expires October 28, 2018               [Page 10]
-
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
-
 
    [RFC7872]  Gont, F., Linkova, J., Chown, T., and W. Liu,
               "Observations on the Dropping of Packets with IPv6
@@ -583,7 +601,7 @@ Appendix A.  How well does ATR actually work?
    version of ATR draft.  It was reported firstly in IEPG meeting before
    IETF 101 and then posted in APNIC blog later.
 
-   It is said the test is performed over 55 million endpoints, using an
+   It is said the test was performed over 55 million endpoints, using an
    online ad distribution network to deliver the test script across the
    Internet.  The result is positive that ATR works!  From the end
    users' perspective, in some 9% of IPv4 cases the use of ATR by the
@@ -591,6 +609,14 @@ Appendix A.  How well does ATR actually work?
    response by signalling to the client an immediate switch to TCP to
    perform a re-query.  The IPv6 behavior would improve the resolution
    times in 15% of cases.
+
+
+
+
+Song                    Expires October 28, 2018               [Page 11]
+
+Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+
 
    It also analyses the pros and cons of ATR.  On one hand, It is said
    that ATR certainly looks attractive if the objective is to improve
@@ -609,32 +635,23 @@ Appendix A.  How well does ATR actually work?
    filtering, ATR can make the inevitable shift of the query to TCP a
    lot faster than it is today.  But it does so at a cost of additional
    packets and additional DNS functionality".  "If a faster DNS service
-
-
-
-
-Song                    Expires October 28, 2018               [Page 11]
-
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
-
-
    is your highest priority, then ATR is worth considering", said at the
    end of this report
 
-   Their work and report definitely makes ATR more shiny attracting
+   This test and report definitely made ATR more shiny attracting
    attention in the community.  However, objectively speaking, there are
-   still some work can be done further on "How well does ATR actually
-   work".  For example, the test only counts the "success" case
-   ("failure" otherwise) in which the "success" for Large UDP case can
-   be achieved by normal retries.  The latency of that retry effort is
+   still something unknown on "How well does ATR actually work".  For
+   example, the test only counts the "success" case ("failure"
+   otherwise) in which the "success" for Large UDP case can be achieved
+   by normal retries.  The latency of that retries may saved by ATR is
    not taken into account.  If not misunderstood, the test
-   underestimates the benefit of ATR in terms of speed of response which
-   is the shiny part.
+   underestimates the benefit of ATR in terms of speed of response.
 
    Another missing part is about the ATR timer and RO impact.  In APNIC
-   test, 10 ms was adopted as the delay of ATR.  It did not change the
-   result of gains for users(9% for IPv4 and 15% for IPv6).  But the
-   cost of RO is not measured for majority cases in which ATR is not
+   test, 10 ms was adopted as the delay of ATR timer according to 00
+   version of this draft.  Different delay of ATR timer may not change
+   the key result on gains of ATR (9% for IPv4 and 15% for IPv6).  But
+   the cost of RO is not measured for majority cases in which ATR is not
    needed, say 87% in IPv4, and 79% in IPv6.  So it overestimate ATR in
    this regards if RO cost is not taken into account.
 
@@ -648,23 +665,6 @@ Author's Address
 
   Email: songlinjian@gmail.com
   URI:   http://www.biigroup.com/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -204,19 +204,19 @@ query |             | No     |             | response
         <t>
           <list style="symbols">
 
-        <t>1) When an authoritative server receives a query 
+        <t>When an authoritative server receives a query 
         and enters the responding process, it first go through the normal 
         truncation loop to see whether the size of response surpasses the EDNS0 
         payload size. If yes, it ends up with responding a truncated packets. 
         If no, it enters the ATR module.</t>
 
-        <t>2) In ATR module, similar like truncation loop, the size of response is 
+        <t>In ATR module, similar like truncation loop, the size of response is 
         compared with a fixed size called ATR payload size. If the response of a 
         query is larger than ATR payload size, the server firstly sends the normal 
         response and then coin a truncated response with the same ID of the query. 
         </t>
 
-        <t>3) The server can reply the coined truncated response in no time. 
+        <t>The server can reply the coined truncated response in no time. 
         But considering the possible impact of network reordering, it is 
         suggested a timer to delay the second truncated response, for example
         10~50 millisecond which can be configured by local operation.</t>
@@ -224,7 +224,7 @@ query |             | No     |             | response
        </t>
        <t>
         Note that the choice of ATR payload size and timer SHOULD be configured locally. And 
-        the operational guidance is discussed in<xref target="ATR-payload-size"/> and 
+        the operational guidance is discussed in <xref target="ATR-payload-size"/> and 
         <xref target="ATR-timer"/> respectively.
       </t>
         <t>
@@ -498,8 +498,29 @@ query |             | No     |             | response
   </section>
 
     <section title="IANA considerations">
-      <t>No IANA registration work is required for the time being</t>
- 
+      
+
+      <t>EDNS(0) <xref target="RFC6891"/> defines 16 bits as extended flags in 
+        the OPT record, these bits are encoded into the TTL field of the 
+        OPT record. IETF Standards Action is required for assignments of 
+        new EDNS(0) flags.</t>
+
+      <t>This document reserves one of these bits as the AO bit. It is requested 
+        that the second bit (left most) be allocated. Thus the USE of the OPT 
+        record TTL field would look like:</t>
+
+      <figure anchor="AO-bit-iana" title="the USE of the OPT record TTL field for AO bit">
+        <artwork>
+        <![CDATA[
+                 +0 (MSB)                +1 (LSB)
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+      0: |   EXTENDED-RCODE      |       VERSION         |
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+      2: |DO|AO|                 Z                       |
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+        ]]>
+        </artwork>
+      </figure>
     </section>
 
    <section title="Acknowledgments">
@@ -603,10 +624,10 @@ query |             | No     |             | response
             <front>
                 <title>How well does ATR actually work?</title>
                 <author fullname= "Goeff Huston">
-                  <organization></organization>
+                  <organization>APNIC</organization>
                   <address></address>
                 </author>
-                <date year="2018" month="Apirl" day="16"/>
+                <date year="2018" month="April" day="16"/>
             </front>
      </reference>  
 
@@ -620,7 +641,7 @@ query |             | No     |             | response
       in IEPG meeting before IETF 101 and then posted in APNIC blog later.
       </t>
 
-      <t>It is said the test is performed 
+      <t>It is said the test was performed 
       over 55 million endpoints, using an online ad distribution 
       network to deliver the test script across the Internet. 
       The result is positive that ATR works! From the end users' 
@@ -656,23 +677,24 @@ query |             | No     |             | response
       </t>
 
       <t>
-        Their work and report definitely makes ATR more shiny attracting 
+        This test and report definitely made ATR more shiny attracting 
         attention in the community. However, objectively speaking, there 
-        are still some work can be done further on "How well does ATR 
+        are still something unknown on "How well does ATR 
         actually work". For example, the test only counts the "success" 
         case ("failure" otherwise) in which the "success" for Large UDP 
-        case can be achieved by normal retries. The latency of that retry 
-        effort is not taken into account. If not misunderstood, the test 
-        underestimates the benefit of ATR in terms of speed of response 
-        which is the shiny part.
+        case can be achieved by normal retries. The latency of that retries 
+        may saved by ATR is not taken into account. If not misunderstood, 
+        the test underestimates the benefit of ATR in terms of speed of 
+        response.
       </t>
       <t>
         Another missing part is about the ATR timer and RO impact. In APNIC 
-        test, 10 ms was adopted as the delay of ATR. It did not change the 
-        result of gains for users(9% for IPv4 and 15% for IPv6). But the 
-        cost of RO is not measured for majority cases in which ATR is not 
-        needed, say 87% in IPv4, and 79% in IPv6. So it overestimate ATR in 
-        this regards if RO cost is not taken into account. 
+        test, 10 ms was adopted as the delay of ATR timer according to 00 version 
+        of this draft. Different delay of ATR timer may not change the key result 
+        on gains of ATR (9% for IPv4 and 15% for IPv6). But the cost of RO 
+        is not measured for majority cases in which ATR is not needed, say 
+        87% in IPv4, and 79% in IPv6. So it overestimate ATR in this regards 
+        if RO cost is not taken into account. 
       </t>
 
     </section>

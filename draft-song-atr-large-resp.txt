@@ -74,7 +74,7 @@ Table of Contents
    4.  Operational considerations  . . . . . . . . . . . . . . . . .   6
      4.1.  ATR timer . . . . . . . . . . . . . . . . . . . . . . . .   6
      4.2.  ATR payload size  . . . . . . . . . . . . . . . . . . . .   7
-     4.3.  The aggresiveness of ATR  . . . . . . . . . . . . . . . .   8
+     4.3.  Less aggresiveness of ATR . . . . . . . . . . . . . . . .   8
    5.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
    6.  IANA considerations . . . . . . . . . . . . . . . . . . . . .   9
    7.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   9
@@ -430,18 +430,18 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    In short, it is recommended that in IPv4 ATR payload size SHOULD be
    1475 octets, and in IPv6 the value SHOULD be 1280 octets.
 
-4.3.  The aggresiveness of ATR
+4.3.  Less aggresiveness of ATR
 
-   There is a concern ATR sends TC=1 response too aggressively.  One of
-   the idea to mitigate this aggressiveness, ATR may respond TC=1
-   responses at a low possibility, such as 10%.
+   There is a concern ATR sends TC=1 response too aggressively
+   especially in the beginning of adoption.  One of the idea to mitigate
+   this aggressiveness, ATR may respond TC=1 responses at a low
+   possibility, such as 10%.
 
    Another way to mitigating is to reply ATR response selectively.  It
    is observed that RO and IPv6 fragmentation issues are path specific
    and persistent due to the Internet components and middle box.  So it
    is reasonable to keep a ATR "whitelist" by counting the retries and
    recording the IP destination address of that large response causing
-
 
 
 

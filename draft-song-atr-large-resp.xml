@@ -462,11 +462,11 @@ query |             | No     |             | response
 
         </section>
 
-        <section title="The aggresiveness of ATR">
-        
+        <section title="Less aggresiveness of ATR">
         <t>
-        There is a concern ATR sends TC=1 response too aggressively. One of the 
-        idea to mitigate this aggressiveness, ATR may respond TC=1 responses 
+        There is a concern ATR sends TC=1 response too aggressively 
+        especially in the beginning of adoption. One of the idea to 
+        mitigate this aggressiveness, ATR may respond TC=1 responses 
         at a low possibility, such as 10%. 
         </t>
         <t>

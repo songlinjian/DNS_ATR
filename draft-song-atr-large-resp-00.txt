@@ -309,26 +309,26 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 4.  Operational considerations
 
-   In this memo, only the behavior of ATR server and the AO bit are
-   specified as a standard.  There are still empty spaces for
-   operational issues, such as the parameter of the ATR timer and ATR
-   payload size, and policies on when ATR is triggered to avoid side-
-   effect.
+   In previous sections, only behavior of ATR server and AO bit are
+   specified.  There are lots of space for operational issues, such as
+   the parameter of the ATR timer and ATR payload size, and policies on
+   when ATR is triggered to avoid side-effect.
 
 4.1.  ATR timer
 
    As introduced in Section 2 ATR timer is a way to avoid the impact of
    network reordering(RO).  The value of the timer is critical, because
-   if the delay is too short, the ATR response may arrived earlier than
-   the fragmented response (the first piece), the resolver will fall
-   back to TCP bearing the cost which should have been avoid.  If the
-   delay is too long, the client may timeout and retry which negates the
-   incremental benefit of ATR.  Generally speaking, the delay of the
+   if the delay is too short, the ATR response may be received earlier
+   than the fragmented response (the first piece), the resolver will
+   fall back to TCP bearing the cost which should have been avoided.  If
+   the delay is too long, the client may timeout and retry which negates
+   the incremental benefit of ATR.  Generally speaking, the delay of the
    timer should be "long enough, but not too long".
 
    To the best knowledge of author, the nature of RO is characterized as
-   follows hopefully helping potential ATR users understand RO and how
-   to operate ATR appropriately in this regard.
+   follows hopefully helping ATR users understand RO and how to operate
+   ATR appropriately in RO context.
+
 
 
 
@@ -339,34 +339,35 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 
    o  RO is mainly caused by the parallelism in Internet components and
-      links other than network anomaly [Bennett].  It is observed that
+      links other than network anomaly [Bennett].  It was observed that
       RO is highly related to the traffic load of Internet components.
-      So RO will long exists as long as the traffic load increase and
-      the parallelism is used to enhance network throughput.
+      So RO will long exists as long as the traffic load continue
+      increase and the parallelism is used to enhance network
+      throughput.
 
    o  The probability of RO varies largely depending on the different
-      tests samples from different work.  Some are below 2% [Paxson]
-      [Tinta] and some are above 90% [Bennett] which is testing in . It
-      is concluded that the RO is site-dependent and path-dependent.  It
-      is observe in that when RO does, it is mostly exhibited
+      tests samples.  Some work shown RO probability below 2% [Paxson]
+      [Tinta] and another work was above 90% [Bennett].  But it is
+      agreed that RO is site-dependent and path-dependent.  It is
+      observed in that when RO happens, it is mostly exhibited
       consistently in a small percentages of the paths.  It is also
       observed that higher rates smaller packets were more prone to RO
       because the sending inter-spacing time was small.
 
-   o  It is reported that the inter-arrival time of RO varies from a few
-      milliseconds to multiple tens of milliseconds[Tinta].  And the
-      larger the packet the larger the inter-arrival time, since larger
-      packets will take longer to be transmitted.
+   o  It was reported that the inter-arrival time of RO varies from a
+      few milliseconds to multiple tens of milliseconds [Tinta].  And
+      the larger the packet the larger the inter-arrival time, since
+      larger packets will take longer to be transmitted.
 
    Reasonably we can infer that firstly RO should be taken into account
    because it long exists due to middle Internet components which can
    not be avoided by end-to-end way.  Secondly the mixture of larger and
    small packets in ATR case will increase the inter-arrival time of RO
    as well as the its probability.  The good news is that the RO is
-   highly site and path specific and persistent which means the ATR
-   operator is able to identify a few sites and paths, setup a tunable
-   timer setting for them, or just put them into a blacklist without
-   replying ATR response.
+   highly site specific and path specific, and persistent which means
+   the ATR operator is able to identify a few sites and paths, setup a
+   tunable timer setting for them, or just put them into a blacklist
+   without replying ATR response.
 
    Based on the above analysis it is hard to provide a perfect value of
    ATR timer for all ATR users due to the diversity of networks.  It
@@ -384,7 +385,6 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    good input from APNIC study on how to react to large response for
    authoritative server.  The only difference is that ATR focuses on the
    second response after the ordinary response.
-
 
 
 

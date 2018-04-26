@@ -78,12 +78,16 @@
         public evidence and concerns on IPv6 fragmentation issues 
         due to larger DNS payloads over IPv6. This memo introduces an 
         simple improvement on DNS server by replying an additional 
-        truncated response just after the normal fragmented response.  
+        truncated response just after the normal fragmented response. 
+        It can be used to relieve users suffering on DNS latency and 
+        failures due to large DNS response. It also can be utilized 
+        as a measuring and troubleshooting tool to locate the issue 
+        and conquer.  
       </t>
 
       <t>REMOVE BEFORE PUBLICATION: The source of the document with test script 
         is currently placed at GitHub <xref target="ATR-Github"/>. Comments 
-        and pull request are welcome. </t>
+        and pull request are welcome.</t>
 
     </abstract>
 
@@ -103,7 +107,7 @@
         proposed which encourages server to reponse larger 
         response instead of falling back to TCP. However, as the 
         increasing use of DNSSEC and IPv6, there are more public 
-        evidence and concerns on resolver's suffering due to packets 
+        evidence and concerns on user's suffering due to packets 
         dropping caused by IPv6 fragmentation in DNS due to large 
         DNS response. 
       </t>
@@ -121,11 +125,11 @@
         due to good redundancy and resilience of DNS. It is hard for DNS 
         client and server operators to trace and locate the issue when 
         fragments are blocked or dropped. The noticeable DNS failures 
-        in users experience are just the tip of the iceberg.
+        and latency experienced by end users are just the tip of the iceberg.
       </t>
 
        <t> 
-        Depending on retry model, the resolver 
+        Depending on retry model, the resolver's 
         failing to receive fragmented response may experience long 
         latency or failure due to timeout and reties. One typical case 
         is that the resolver finally got the answer after several retires 
@@ -134,10 +138,10 @@
         ignoring the UDP payload size in EDNS0 extension and always 
         truncating the response when the response size is large than a 
         expected one. However one study <xref target="Not-speak-TCP"/> 
-        showed that about 17% of resolvers in the samples can not ask a 
+        shows that about 17% of resolvers in the samples can not ask a 
         query in TCP when they receive truncated response. It seems a dilemma 
-        to choose hurting either the users who can not receive fragmentation 
-        or the users without TCP capacity.There is also some voice of "moving 
+        to choose hurting either the users who can not receive fragments 
+        or the users without TCP fallback capacity. There is also some voice of "moving 
         all DNS over TCP". But It is generally desired that DNS can keep 
         the efficiency and high performance by using DNS UDP in most of 
         time and fallback as soon as possible to TCP if necessary for some 
@@ -145,10 +149,15 @@
        </t>
 
        <t>To relieve the problem, this memo introduces an small improvement 
-        on DNS responding process by replying Additional Truncated Response (ATR) just after a normal large response which is to be fragmented. Generally speaking ATR provides a way to decouple the EDNS0 and TCP fallback in which they can work independently according to the server operator's requirement. SO one goal of ATR is to relieve the hurt of resolver (both stub and recursive resolver) from the position of server (both authoritative and 
-        recursive server). It does not require any changes on resolver 
-        and has a deploy-and-gain feature to encourage operators to 
-        implement it to benefit their resolvers.  
+        on DNS responding process by replying an Additional Truncated 
+        Response (ATR) just after a normal large response which is to be 
+        fragmented. Generally speaking ATR provides a way to decouple the 
+        EDNS0 and TCP fallback in which they can work independently according 
+        to the server operator's requirement. One goal of ATR is to relieve 
+        the hurt of users, both stub and recursive resolver, from the position 
+        of server, both authoritative and recursive server. It does not 
+        require any changes on resolver and has a deploy-and-gain feature 
+        to encourage operators to implement it to benefit their resolvers.  
        </t>
 
       <t>
@@ -166,10 +175,12 @@
         </t> 
 
         <t>
-        Note that in Appendix A of this memo there is a brief 
-        introduction and reference to the study done by APNIC 
-        on how well does ATR actually work. It may help people 
-        to understand what the benefit and tradeoff that ATR brings.</t>
+
+        [REMOVE BEFORE PUBLICATION] Note that in Appendix A of this memo 
+        there is a brief introduction of the test done by APNIC on how well 
+        does ATR actually work. And comments are also attached by the author 
+        of this memo. It may help people to understand what the benefit and 
+        tradeoff that ATR brings.</t>
 
     </section>
     <section title="The ATR mechanism" anchor="ATR_mechanism">
@@ -211,7 +222,7 @@ query |             | No     |             | response
         If no, it enters the ATR module.</t>
 
         <t>In ATR module, similar like truncation loop, the size of response is 
-        compared with a fixed size called ATR payload size. If the response of a 
+        compared with a value called ATR payload size. If the response of a 
         query is larger than ATR payload size, the server firstly sends the normal 
         response and then coin a truncated response with the same ID of the query. 
         </t>
@@ -223,13 +234,17 @@ query |             | No     |             | response
       </list>
        </t>
        <t>
-        Note that the choice of ATR payload size and timer SHOULD be configured locally. And 
-        the operational guidance is discussed in <xref target="ATR-payload-size"/> and 
+        Note that the choice of ATR payload size and timer SHOULD be 
+        configured locally. And the operational consideration and 
+        guidance is discussed in <xref target="ATR-payload-size"/> and 
         <xref target="ATR-timer"/> respectively.
       </t>
+
         <t>
-        There are three cases when a resolver send query to an ATR server in which the server will generate a large response with fragments:
-      </t>
+        There are three typical cases of ATR-unaware resolver behavior 
+        when a resolver send query to an ATR server in which the server 
+        will generate a large response with fragments:
+        </t>
       <t><list style="symbols">
       <t>
         Case 1: a resolver (or sub-resolver) will receive both the large response 
@@ -243,13 +258,16 @@ query |             | No     |             | response
         in no time. </t>
 
         <t>
-        Case 3: For those (probably 30%*17% of them) who can not speak TCP and sitting behind a firewall stubbornly dropping fragments. Just say good luck to them!
+        Case 3: For those (probably 30%*17% of them) who can not speak TCP and 
+        sitting behind a firewall stubbornly dropping fragments. Just say good luck to them!
         </t>
         </list></t>
 
         <t>
-        In the case authoritative server truncated all response surpass certain value , for example setting IPv6-edns-size to 1220 octets, ATR will helpful for 
-        resolver with TCP capacity, because the resolver still has a fair chance to receive the large response. The measurement done in APNIC (in Appendix A) shows that ...</t>
+        In the case authoritative server truncated all response surpass certain 
+        value , for example setting IPv6-edns-size to 1220 octets, ATR will helpful 
+        for resolver with TCP capacity, because the resolver still has a fair chance 
+        to receive the large response.</t>
         </section>
 
 
@@ -315,11 +333,11 @@ query |             | No     |             | response
     <section title="Operational considerations">
 
       <t>
-        In this memo, only the behavior of ATR on authoritative 
-        server and the AO bit are specified as a standard. There 
-        are still empty spaces for operational issues, such as 
-        the parameter of the ATR timer and ATR payload size, 
-        and policies on when ATR is trigged to avoid side-effect.</t>
+        In this memo, only the behavior of ATR server and the AO bit 
+        are specified as a standard. There are still empty spaces for 
+        operational issues, such as the parameter of the ATR timer and 
+        ATR payload size, and policies on when ATR is triggered to avoid 
+        side-effect.</t>
 
         <section title="ATR timer" anchor="ATR-timer">
         <t>
@@ -338,14 +356,14 @@ query |             | No     |             | response
         to operate ATR appropriately in this regard.
       <list style="symbols">
       <t>
-        1) RO is mainly caused by the parallelism in Internet components and 
+        RO is mainly caused by the parallelism in Internet components and 
         links other than network anomaly <xref target="Bennett"/>. It is 
         observed that RO is highly related to the traffic load of Internet 
         components. So RO will long exists as long as the traffic load increase 
         and the parallelism is used to enhance network throughput.
       </t>
        <t>
-        2) The probability of RO varies largely depending on the different 
+        The probability of RO varies largely depending on the different 
         tests samples from different work. Some are below 2% <xref target="Paxson"/> 
         <xref target="Tinta"/> and some are above 90% <xref target="Bennett"/> 
         which is testing in . It is concluded that the RO is site-dependent and 
@@ -355,7 +373,7 @@ query |             | No     |             | response
         inter-spacing time was small.
       </t>
       <t>
-        3) It is reported that the inter-arrival time of RO varies from a 
+        It is reported that the inter-arrival time of RO varies from a 
         few milliseconds to multiple tens of milliseconds<xref target="Tinta"/>. 
         And the larger the packet the larger the inter-arrival time, since larger 
         packets will take longer to be transmitted.</t>
@@ -678,17 +696,23 @@ query |             | No     |             | response
 
       <t>
         This test and report definitely made ATR more shiny attracting 
-        attention in the community. However, objectively speaking, there 
+        attention in the community. But it is found that there 
         are still something unknown on "How well does ATR 
-        actually work". For example, the test only counts the "success" 
+        actually work". Firstly the test only counts the "success" 
         case ("failure" otherwise) in which the "success" for Large UDP 
         case can be achieved by normal retries. The latency of that retries 
-        may saved by ATR is not taken into account. If not misunderstood, 
-        the test underestimates the benefit of ATR in terms of speed of 
+        may saved by ATR is not taken into account. </t>
+      <t>
+        Secondly no measurement and analysis is done to compare ATR with TCP. 
+        From the failure rate of users, we see ATR and TCP have similar performance
+         (same for IPv4, and only 2% difference in IPv6). But there are resolvers who 
+         are able to receive the fragments more sooner in ATR case , but 
+         fall back to TCP in always-truncation case. If not misunderstood, 
+        the two unknown parts underestimates the benefit of ATR in terms of speed of 
         response.
       </t>
       <t>
-        Another missing part is about the ATR timer and RO impact. In APNIC 
+        The third unknown part is about the ATR timer and RO impact. In APNIC 
         test, 10 ms was adopted as the delay of ATR timer according to 00 version 
         of this draft. Different delay of ATR timer may not change the key result 
         on gains of ATR (9% for IPv4 and 15% for IPv6). But the cost of RO 

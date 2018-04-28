@@ -534,7 +534,7 @@ query |             | No     |             | response
                 <date year="2017" month="August" day="22"/>
             </front>
      </reference>  
-          <reference anchor="Paxson" target="https://blog.apnic.net/2017/08/22/dealing-ipv6-fragmentation-dns">
+          <reference anchor="Paxson" target="https://cseweb.ucsd.edu/classes/fa01/cse222/papers/paxson-e2e-packets-sigcomm97.pdf">
             <front>
                 <title>End-to-End Internet Packet Dynamics</title>
                 <author fullname= "Vern Paxson">
@@ -545,7 +545,7 @@ query |             | No     |             | response
             </front>
      </reference>  
 
-          <reference anchor="Tinta" target="https://blog.apnic.net/2017/08/22/dealing-ipv6-fragmentation-dns">
+          <reference anchor="Tinta" target="https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/35247.pdf">
             <front>
                 <title>Characterizing End-to-End Packet Reordering with UDP Traffic</title>
                 <author fullname= "Sandra P. Tinta">
@@ -555,7 +555,7 @@ query |             | No     |             | response
                 <date year="2009" month="August" day="18"/>
             </front>
      </reference>  
-      <reference anchor="Bennett" target="https://blog.apnic.net/2017/08/22/dealing-ipv6-fragmentation-dns">
+      <reference anchor="Bennett" target="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.461.7629&amp;rep=rep1&amp;type=pdf">
             <front>
                 <title>Packet Reordering is Not Pathological Network Behavior</title>
                 <author fullname= "Jon C. R. Bennett">

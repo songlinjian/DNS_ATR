@@ -539,8 +539,8 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
               protocols>.
 
    [Paxson]   "End-to-End Internet Packet Dynamics", August 1999,
-              <https://blog.apnic.net/2017/08/22/dealing-ipv6-
-              fragmentation-dns>.
+              <https://cseweb.ucsd.edu/classes/fa01/cse222/papers/
+              paxson-e2e-packets-sigcomm97.pdf>.
 
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
               specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,

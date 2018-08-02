@@ -681,11 +681,11 @@ query |             | No     |             | response
     <t>
        ATR proposed in this memo is a server-side function which 
        requires no change in resolver, so it is not required that 
-       resolver should recognized or use AT bit. But it may helpful for 
-       some special cases where a resolver is able to recognized ATR 
+       resolver MUST recognized ATR and react accordingly. But it may 
+       helpful for some cases where a resolver is able to recognized ATR 
        response, for example by checking the large edns0 payload size 
-       and TrunCation 
-       bit.</t>
+       and TrunCation bit. 
+    </t>
     <t>
        One case is use ATR is used as troubleshooting tool by which 
         resolver operators are able to flag problematic name servers. 
@@ -706,6 +706,12 @@ query |             | No     |             | response
        reordering issue as well. However, it should be taken into account about 
        the balance of resolver's resource. Less priority should be given  
        to that function when the resolver is "busy".</t>
+
+      <t>Note that a normal truncated response may be mistaken as ATR 
+        response when authoritative server truncated responses once the 
+        packets size surpasses a certain value.
+     </t>
+
     <!--
       <t>
        Another case is that a ATR-aware resolver is able to indicate 

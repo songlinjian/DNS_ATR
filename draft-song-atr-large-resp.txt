@@ -541,10 +541,10 @@ Internet-DrafATR: Additional Truncation Response for Large D August 2018
 Appendix A.  Considerations on Resolver awareness of ATR
 
    ATR proposed in this memo is a server-side function which requires no
-   change in resolver, so it is not required that resolver should
-   recognized or use AT bit.  But it may helpful for some special cases
-   where a resolver is able to recognized ATR response, for example by
-   checking the large edns0 payload size and TrunCation bit.
+   change in resolver, so it is not required that resolver MUST
+   recognized ATR and react accordingly.  But it may helpful for some
+   cases where a resolver is able to recognized ATR response, for
+   example by checking the large edns0 payload size and TrunCation bit.
 
    One case is use ATR is used as troubleshooting tool by which resolver
    operators are able to flag problematic name servers.  The resolver
@@ -571,6 +571,10 @@ Internet-DrafATR: Additional Truncation Response for Large D August 2018
    well.  However, it should be taken into account about the balance of
    resolver's resource.  Less priority should be given to that function
    when the resolver is "busy".
+
+   Note that a normal truncated response may be mistaken as ATR response
+   when authoritative server truncated responses once the packets size
+   surpasses a certain value.
 
    However resolver use case of ATR is currently outside of the scope of
    server-ATR proposal.  It needs further discussion.
@@ -606,10 +610,6 @@ B.1.  draft-song-atr-large-resp-01
 
    o  Change the category="std" . It is said in RFC6891 IETF Standards
       Action is required for assignments of new EDNS(0) flags.  So the
-      draft should be categorized as standard track if registering AT
-      bit is desired in this document.
-
-
 
 
 
@@ -617,6 +617,9 @@ Song                    Expires February 3, 2019               [Page 11]
 
 Internet-DrafATR: Additional Truncation Response for Large D August 2018
 
+
+      draft should be categorized as standard track if registering AT
+      bit is desired in this document.
 
    Change history is also available in the public GitHub repository
    where this document is maintained: <https://github.com/songlinjian/
@@ -643,9 +646,6 @@ Author's Address
 
    Email: songlinjian@gmail.com
    URI:   http://www.biigroup.com/
-
-
-
 
 
 

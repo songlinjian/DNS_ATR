@@ -151,7 +151,7 @@
         require any changes on resolver and has a deploy-and-gain feature 
         to encourage operators to implement it to benefit their resolvers.  
        </t>
-
+<!--
       <t>
         Another possible use of ATR is to help troubleshooting for DNS operators 
         where ATR can be deployed as a measurement tool to identify vulnerable 
@@ -164,7 +164,7 @@
         that period. It can help identify vulnerable users and adopt ATR to 
         them.  
         </t> 
-
+-->
         <t>
         [REMOVE BEFORE PUBLICATION] Note that ATR is not just a proposed idea. Some advocates of ATR implemented it based on BIND9 (https://gitlab.isc.org/isc-projects/bind9/merge_requests/158). And Some verify it based on an large-scale experiment platform of APNIC lab  <xref target="APNIC-experiment"/> which is introduced in this memo. </t>
 
@@ -303,11 +303,10 @@ query |             | No     |             | response
     <section title="Operational considerations">
 
       <t>
-        In previous sections, only behavior of ATR server 
-        and AT bit are specified. There are lots of space 
-        for operational issues, such as the parameter of 
-        the ATR timer and ATR payload size, and policies 
-        on when ATR is triggered to avoid side-effect.</t>
+        There are some operational consideration on ATR, 
+        such as the parameter of the ATR timer and ATR 
+        payload size, and policies on when ATR is triggered 
+        to avoid side-effect.</t>
 
         <section title="ATR timer" anchor="ATR-timer">
         <t>
@@ -440,10 +439,10 @@ query |             | No     |             | response
         as an optional and configurable feature at the disposal 
         of authoritative server operator. One of the idea to mitigate this 
         aggressiveness, ATR may respond TC=1 responses at a low possibility, 
-        such as 10%. 
-        </t>
+        such as 10%.  </t>
+ 
         <t>
-        Another way to mitigating is to reply ATR response selectively. It is 
+        Another way is to reply ATR response selectively. It is 
         observed that RO and IPv6 fragmentation issues are path specific and 
         persistent due to the Internet components and middle box. So it is 
         reasonable to keep a ATR "whitelist" by counting the retries and 
@@ -452,26 +451,7 @@ query |             | No     |             | response
         the white list.
         </t>
         </section>
-        <section title="ATR Indicator">
-          <t>
-        There are use cases when ATR is used as measurement tool by which 
-        resolver operators are able to flag problematic name servers. 
-        In order to achieve that it is necessary to distinguish ATR response 
-        in a special way from a ordinary truncated response. The presence of 
-        both Large EDNS0 payload size and TrunCation bit in a DNS response 
-        packet can be identified as ATR indicator. It enables resolver 
-        operators to log cases where ATR responses is received without a 
-        (reassembled) UDP response to a query.  In the case of receiving 
-        a ATR, RDNS can choose to restrict maximum EDNS to a lower value 
-        than the default 4096 that currently used. 
-          </t>
-      <t> 
-        Another measuring approach using ATR is to selectively reply ATR 
-        response to specific group of resolvers and record the TCP connections
-        it received during that period.  It can help identify vulnerable users 
-        and adopt ATR to them.
-      </t>
-        </section>
+        
     </section>
 
   <section title="Security Considerations">
@@ -701,12 +681,23 @@ query |             | No     |             | response
     <t>
        ATR proposed in this memo is a server-side function which 
        requires no change in resolver, so it is not required that 
-       resolver should recognized or use AT bit.But it may helpful for 
+       resolver should recognized or use AT bit. But it may helpful for 
        some special cases where a resolver is able to recognized ATR 
-       response by checking the large edns0 payload size and TrunCation 
-       bit. </t>
+       response, for example by checking the large edns0 payload size 
+       and TrunCation 
+       bit.</t>
     <t>
-       One case is that when receiving a ATR response a ATR-aware 
+       One case is use ATR is used as troubleshooting tool by which 
+        resolver operators are able to flag problematic name servers. 
+        The resolver operators is enable to log cases where ATR 
+        responses is received without a (reassembled) UDP response to a 
+        query. In the case of receiving a ATR, RDNS can choose to restrict 
+        maximum EDNS to a lower value than the default 4096 that currently 
+        used. 
+    </t>
+
+    <t>
+       Another case is that when receiving a ATR response a ATR-aware 
        resolver can adopt a "happyeyeballs" strategy by opening a separate 
        transaction sending the query via TCP instead of falling back to 
        TCP and closing the original UDP transaction. Listen to port 53 
@@ -757,7 +748,6 @@ query |             | No     |             | response
         <list style="symbols">
         <t>Remove the section of introduction of AT bit as well as requirement of IANA registration of that bit;</t>
         <t>Change the category of this document to experimental and move the introduction of APNIC's experiment from Appendix A to section 3;</t>
-        <t>Add a operation consideration of using ATR as a measurement tool;</t>
         <t>Add IANA consideration to register the AT bit;</t>
         <t>Add more names in Acknowledgments part after IETF102;</t>
         </list></t>

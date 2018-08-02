@@ -4,12 +4,12 @@
 
 Internet Engineering Task Force                                  L. Song
 Internet-Draft                                Beijing Internet Institute
-Intended status: Standards Track                          April 28, 2018
-Expires: October 30, 2018
+Intended status: Experimental                             August 2, 2018
+Expires: February 3, 2019
 
 
        ATR: Additional Truncation Response for Large DNS Response
-                      draft-song-atr-large-resp-01
+                      draft-song-atr-large-resp-02
 
 Abstract
 
@@ -18,9 +18,7 @@ Abstract
    payloads over IPv6.  This memo introduces an simple improvement on
    DNS server by replying an additional truncated response just after
    the normal fragmented response.  It can be used to relieve users
-   suffering on DNS latency and failures due to large DNS response.  It
-   also can be utilized as a measuring and troubleshooting tool to
-   locate the issue and conquer.
+   suffering on DNS latency and failures due to large DNS response.
 
    REMOVE BEFORE PUBLICATION: The source of the document with test
    script is currently placed at GitHub [ATR-Github].  Comments and pull
@@ -34,14 +32,14 @@ Status of This Memo
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF).  Note that other groups may also distribute
    working documents as Internet-Drafts.  The list of current Internet-
-   Drafts is at http://datatracker.ietf.org/drafts/current/.
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on October 30, 2018.
+   This Internet-Draft will expire on February 3, 2019.
 
 Copyright Notice
 
@@ -50,16 +48,16 @@ Copyright Notice
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
-
-
-
-Song                    Expires October 30, 2018                [Page 1]
-
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
-
-
-   (http://trustee.ietf.org/license-info) in effect on the date of
+   (https://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
+
+
+
+Song                    Expires February 3, 2019                [Page 1]
+
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
+
+
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
@@ -70,17 +68,20 @@ Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    2.  The ATR mechanism . . . . . . . . . . . . . . . . . . . . . .   4
-   3.  Indicating a ATR response . . . . . . . . . . . . . . . . . .   5
+   3.  Experiment on how well ATR works  . . . . . . . . . . . . . .   5
    4.  Operational considerations  . . . . . . . . . . . . . . . . .   6
      4.1.  ATR timer . . . . . . . . . . . . . . . . . . . . . . . .   6
      4.2.  ATR payload size  . . . . . . . . . . . . . . . . . . . .   7
-     4.3.  Less aggresiveness of ATR . . . . . . . . . . . . . . . .   8
+     4.3.  Less aggressiveness of ATR  . . . . . . . . . . . . . . .   8
+     4.4.  ATR Indicator . . . . . . . . . . . . . . . . . . . . . .   8
    5.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
    6.  IANA considerations . . . . . . . . . . . . . . . . . . . . .   9
    7.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   9
    8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   9
-   Appendix A.  How well does ATR actually work? . . . . . . . . . .  11
-   Appendix B.  Considerations on Resolver awareness of ATR  . . . .  12
+   Appendix A.  Considerations on Resolver awareness of ATR  . . . .  11
+   Appendix B.  Revision history of this document  . . . . . . . . .  11
+     B.1.  draft-song-atr-large-resp-01  . . . . . . . . . . . . . .  11
+     B.2.  draft-song-atr-large-resp-02  . . . . . . . . . . . . . .  12
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  13
 
 1.  Introduction
@@ -90,7 +91,7 @@ Table of Contents
    response (larger than 512 octets) by indicating (set TrunCation bit)
    the resolver to fall back to query via TCP.  Due to the fear of cost
    of TCP, EDNS(0) [RFC6891] was proposed which encourages server to
-   reponse larger response instead of falling back to TCP.  However, as
+   response larger response instead of falling back to TCP.  However, as
    the increasing use of DNSSEC and IPv6, there are more public evidence
    and concerns on user's suffering due to packets dropping caused by
    IPv6 fragmentation in DNS due to large DNS response.
@@ -108,10 +109,9 @@ Table of Contents
 
 
 
-
-Song                    Expires October 30, 2018                [Page 2]
+Song                    Expires February 3, 2019                [Page 2]
 
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
 
 
    when fragments are blocked or dropped.  The noticeable DNS failures
@@ -145,29 +145,29 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    changes on resolver and has a deploy-and-gain feature to encourage
    operators to implement it to benefit their resolvers.
 
-   Another goal of ATR is to help troubleshooting for DNS operators
-   where ATR can be deployed as a measurement tool.  A flag bit is
-   required in EDNS0 OPT header to distinguish ATR response from a
-   ordinary truncated response.  A resolver (or troubleshooter) can tell
-   if there is any fragment not received in a certain transaction by
-   capturing that flag bit.  On the server side, the operator can turn
-   on the ATR function occasionally for some resolvers and record the
-   TCP connection it received during the period.  The data may be
-   helpful to do some fine-grained analysis to evaluate the performance
-   among different name servers, and provide ATR to specific group of
-   resolvers.
+   Another possible use of ATR is to help troubleshooting for DNS
+   operators where ATR can be deployed as a measurement tool to identify
+   vulnerable servers and users.  The presence of both Large EDNS0
+   payload size and TrunCation bit can tell if there is any fragment not
+   received in a certain transaction with a name server by receiving
+   only ATR response without ordinary UDP response.  Another measuring
+   approach using ATR is to selectively reply ATR response to specific
+   group of resolvers and record the TCP connections it received during
+   that period.  It can help identify vulnerable users and adopt ATR to
+   them.
 
-   [REMOVE BEFORE PUBLICATION] Note that in Appendix A of this memo
-   there is a brief introduction of the test done by APNIC on how well
-   does ATR actually work.  And comments are also attached by the author
-   of this memo.  It may help people to understand what the benefit and
-   tradeoff that ATR brings.
-
+   [REMOVE BEFORE PUBLICATION] Note that ATR is not just a proposed
+   idea.  Some advocates of ATR implemented it based on BIND9
+   (https://gitlab.isc.org/isc-projects/bind9/merge_requests/158).  And
+   Some verify it based on an large-scale experiment platform of APNIC
+   lab Section 3 which is introduced in this memo.
 
 
-Song                    Expires October 30, 2018                [Page 3]
+
+
+Song                    Expires February 3, 2019                [Page 3]
 
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
 
 
 2.  The ATR mechanism
@@ -221,9 +221,9 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 
 
-Song                    Expires October 30, 2018                [Page 4]
+Song                    Expires February 3, 2019                [Page 4]
 
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
 
 
    There are three typical cases of ATR-unaware resolver behavior when a
@@ -248,64 +248,49 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    ATR will helpful for resolver with TCP capacity, because the resolver
    still has a fair chance to receive the large response.
 
-3.  Indicating a ATR response
+3.  Experiment on how well ATR works
 
-   As introduced in ATR it is necessary to distinguish ATR response in a
-   special way from a ordinary truncated response.  It enables resolver
-   operators to log cases where ATR responses is received without a
-   (reassembled) UDP response to a query.  Without an indicator that
-   distinguishes ATR response, there would be no way to avoid false
-   alarms from authoritative servers that always and only return
-   truncated responses when the message exceeds some size.  It is
-   actually the use case where Google RDNS is considering.  Google RDNS
-   would like to use such indications to flag problematic name servers
-   where RDNS should restrict maximum EDNS to a lower value than the
-   default 4096 that currently used.
+   It is worth of mentioning APNIC report[How-ATR-Work] on "How well
+   does ATR actually work?" done by Geoff Huston and Joao Damas after 00
+   version of ATR draft.  It was reported firstly in IEPG meeting before
+   IETF 101 and then posted in APNIC Blog later.
 
-   A simple way for that indicator of ATR response is to define a bit in
-   the Z field on the EDNS0 OPT header in the response.  This has the
-   virtue of simplicity, and only a minimal risk of breaking existing
-   implementations.  This bit is referred to as the "ATR Response" (AT)
-   bit.  In the context of the EDNS0 OPT meta-RR, just following the DO
-   bit, the AT bit is the second bit of the third and fourth bytes of
-   the "extended RCODE and flags" portion (section 6.1.3 of RFC6891) of
-   the EDNS0 OPT meta-RR, structured as follows:
+   It is said the test was performed over 55 million endpoints, using an
+   on-line ad distribution network to deliver the test script across the
+   Internet.  The result is positive that ATR works!  From the end
+   users' perspective, in some 9% of IPv4 cases the use of ATR by the
+   server will improve the speed of resolution of a fragmented UDP
+   response by signaling to the client an immediate switch to TCP to
+   perform a re-query.  The IPv6 behavior would improve the resolution
+   times in 15% of cases.
 
-
-
-
-
+   It also analyzed the pros and cons of ATR.  On one hand, It is said
+   that ATR certainly looks attractive if the objective is to improve
+   the speed of DNS resolution when passing large DNS responses.  And
+   ATR is incrementally deployable in favor of decision made by each
+   server operator.  On another hand, ATR also has some negative
+   factors.  One issue is adding another DNS DDoS attack vector due to
+   the additional packet sent by ATR, (author's note : very small adding
+   actually.)  Another issue is risk of RO by the choice of the delay
+   timer which is discussed fully in Section 4.1.
 
 
-Song                    Expires October 30, 2018                [Page 5]
+
+
+Song                    Expires February 3, 2019                [Page 5]
 
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
 
 
-                    +0 (MSB)                +1 (LSB)
-            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         0: |   EXTENDED-RCODE      |       VERSION         |
-            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         2: |DO|AT|                 Z                       |
-            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-
-
-
-       Figure 2: Wire format of extended RCODE and flags with AT bit
-
-   The logic of AT bit is simple that setting the AT bit to one in a
-   response indicates to the resolver that the response is an ATR
-   response.  The DO bit cleared(set to zero) indicates the response is
-   a ordinary response.  Note that AT bit and TC bit SHOULD be set and
-   appear in the response as a pair.  The response will be ignored if
-   only AT bit is set.
-
-   The indication of ATR defined in this memo is for measurement and
-   logging purpose.  But it is possible used by resolver operator in
-   other aspects, because it signals the resolver the large response is
-   fragmented and dropped on the path.  The resolver could be encouraged
-   to act more actively to get the answer depending on local policy.
-   More is discussed in Appendix B.
+   As a conclusion, it is said that "ATR does not completely fix the
+   large response issue.  If a resolver cannot receive fragmented UDP
+   responses and cannot use TCP to perform DNS queries, then ATR is not
+   going to help.  But where there are issues with IP fragment
+   filtering, ATR can make the inevitable shift of the query to TCP a
+   lot faster than it is today.  But it does so at a cost of additional
+   packets and additional DNS functionality".  "If a faster DNS service
+   is your highest priority, then ATR is worth considering", said at the
+   end of this report
 
 4.  Operational considerations
 
@@ -329,15 +314,6 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    follows hopefully helping ATR users understand RO and how to operate
    ATR appropriately in RO context.
 
-
-
-
-
-Song                    Expires October 30, 2018                [Page 6]
-
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
-
-
    o  RO is mainly caused by the parallelism in Internet components and
       links other than network anomaly [Bennett].  It was observed that
       RO is highly related to the traffic load of Internet components.
@@ -353,6 +329,14 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
       consistently in a small percentages of the paths.  It is also
       observed that higher rates smaller packets were more prone to RO
       because the sending inter-spacing time was small.
+
+
+
+
+Song                    Expires February 3, 2019                [Page 6]
+
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
+
 
    o  It was reported that the inter-arrival time of RO varies from a
       few milliseconds to multiple tens of milliseconds [Tinta].  And
@@ -386,14 +370,6 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    large DNS payload for authoritative server.  The difference in ATR is
    that ATR focuses on the second response after the ordinary response.
 
-
-
-
-Song                    Expires October 30, 2018                [Page 7]
-
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
-
-
    For IPv4 DNS server, it is suggested the study that do not truncate
    and fragment IPv4 UDP response with a payload up to 1472 octets which
    is Ethernet MTU(1500) minus the sum of IPv4 header(20) and UDP
@@ -410,6 +386,14 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
    Given IPv4 fragmentation issue is not so serious compared to IPv6, it
    is suggested in this memo to set ATR payload size 1472 octets which
+
+
+
+Song                    Expires February 3, 2019                [Page 7]
+
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
+
+
    means ATR only fit large DNS response larger than 1500 octets in
    IPv4.
 
@@ -421,71 +405,86 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
    that time.
 
    In the case of ATR considering the second truncated response, a
-   smaller size: 1280 octets(IPv6 MTU for most network devices) should
-   be chosen as ATR payload size to trigger necessary TCP fallback.  As
-   a complementary requirement with ATR, the TCP MSS should be set 1220
-   octets to avoid Packet Too Big ICMP message as suggested in the APNIC
-   study.
+   smaller size: 1232 octets, which is IPv6 MTU for most network
+   devices(1280) minus the sum of IPv6 header(40) and UDP header(8),
+   should be chosen as ATR payload size to trigger necessary TCP
+   fallback.  As a complementary requirement with ATR, the TCP MSS
+   should be set 1220 octets to avoid Packet Too Big ICMP message as
+   suggested in the APNIC study.
 
    In short, it is recommended that in IPv4 ATR payload size SHOULD be
-   1475 octets, and in IPv6 the value SHOULD be 1280 octets.
+   1472 octets, and in IPv6 the value SHOULD be 1232 octets.
 
-4.3.  Less aggresiveness of ATR
+4.3.  Less aggressiveness of ATR
 
    There is a concern ATR sends TC=1 response too aggressively
-   especially in the beginning of adoption.  One of the idea to mitigate
-   this aggressiveness, ATR may respond TC=1 responses at a low
-   possibility, such as 10%.
+   especially in the beginning of adoption.  ATR can be implemented as
+   an optional and configurable feature at the disposal of authoritative
+   server operator.  One of the idea to mitigate this aggressiveness,
+   ATR may respond TC=1 responses at a low possibility, such as 10%.
 
    Another way to mitigating is to reply ATR response selectively.  It
    is observed that RO and IPv6 fragmentation issues are path specific
    and persistent due to the Internet components and middle box.  So it
    is reasonable to keep a ATR "whitelist" by counting the retries and
    recording the IP destination address of that large response causing
-
-
-
-Song                    Expires October 30, 2018                [Page 8]
-
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
-
-
    many retires.  ATR only acts to those queries from the IP address in
    the white list.
+
+4.4.  ATR Indicator
+
+   There are use cases when ATR is used as measurement tool by which
+   resolver operators are able to flag problematic name servers.  In
+   order to achieve that it is necessary to distinguish ATR response in
+   a special way from a ordinary truncated response.  The presence of
+   both Large EDNS0 payload size and TrunCation bit in a DNS response
+   packet can be identified as ATR indicator.  It enables resolver
+   operators to log cases where ATR responses is received without a
+   (reassembled) UDP response to a query.  In the case of receiving a
+
+
+
+
+Song                    Expires February 3, 2019                [Page 8]
+
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
+
+
+   ATR, RDNS can choose to restrict maximum EDNS to a lower value than
+   the default 4096 that currently used.
+
+   Another measuring approach using ATR is to selectively reply ATR
+   response to specific group of resolvers and record the TCP
+   connections it received during that period.  It can help identify
+   vulnerable users and adopt ATR to them.
 
 5.  Security Considerations
 
    There may be concerns on DDoS attack problem due to the fact that the
-   ATR introduces multiple responses from authoritative server.  DNS
-   cookies [RFC7873] and RRL on authoritative may be possible solutions
+   ATR introduces multiple responses from authoritative server.  The
+   extra packet is pretty small.  In the worst case, it's 50% more
+   packets and they are small
+
+   DNS cookies [RFC7873] and RRL on authoritative may be possible
+   solutions
 
 6.  IANA considerations
 
-   EDNS(0) [RFC6891] defines 16 bits as extended flags in the OPT
-   record, these bits are encoded into the TTL field of the OPT record.
-   IETF Standards Action is required for assignments of new EDNS(0)
-   flags.
-
-   This document reserves one of these bits as the AT bit.  It is
-   requested that the second bit (left most) be allocated.  Thus the USE
-   of the OPT record TTL field would look like:
-
-
-                    +0 (MSB)                +1 (LSB)
-            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         0: |   EXTENDED-RCODE      |       VERSION         |
-            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         2: |DO|AT|                 Z                       |
-            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-
-
-         Figure 3: the USE of the OPT record TTL field for AT bit
+   No IANA considerations for this memo
 
 7.  Acknowledgments
 
-   Thank Geoff Huston and Joao Damas for their testing work in APNIC lab
-   on "How well does ATR actually work?".  It gives ATR a new born.
-   Akira Kato contributed ideas on operational consideration.
+   Many thanks to reviewers and their comments.  Geoff Huston and Joao
+   Damas did a testing on the question "How well does ATR actually
+   work?".  Alexander Dupuy proposed the idea to distinguish ATR
+   responses from normal ones.  Akira Kato contributed ideas on
+   operational consideration.  Shane Kerr help author with the security
+   consideration.  Stephane Bortzmeyer gave thought of happyeyeballs on
+   resolver side.
+
+   Acknowledgments are also give to Mukund Sivaraman, Evan Hunt and Mark
+   Andrews who implement it and maintained it in a brunch in BIND9 code
+   base.
 
 8.  References
 
@@ -501,9 +500,10 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 
 
-Song                    Expires October 30, 2018                [Page 9]
+
+Song                    Expires February 3, 2019                [Page 9]
 
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
 
 
    [Brownlee]
@@ -514,8 +514,8 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
    [How-ATR-Work]
               APNIC, "How well does ATR actually work?", April 2018,
-              <https://blog.apnic.net/2018/04/16/how-well-does-atr-
-              actually-work/>.
+              <https://blog.apnic.net/2018/04/16/
+              how-well-does-atr-actually-work/>.
 
    [I-D.taylor-v6ops-fragdrop]
               Jaeggli, J., Colitti, L., Kumari, W., Vyncke, E., Kaeo,
@@ -525,8 +525,8 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
    [IPv6-frag-DNS]
               "Dealing with IPv6 fragmentation in the DNS", August 2017,
-              <https://blog.apnic.net/2017/08/22/dealing-ipv6-
-              fragmentation-dns>.
+              <https://blog.apnic.net/2017/08/22/
+              dealing-ipv6-fragmentation-dns>.
 
    [Liang]    Tsinghua University, "Measuring Query Latency of Top Level
               DNS Servers", February 2013,
@@ -535,8 +535,8 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
    [Not-speak-TCP]
               "A Question of DNS Protocols", August 2013,
-              <https://labs.ripe.net/Members/gih/a-question-of-dns-
-              protocols>.
+              <https://labs.ripe.net/Members/gih/
+              a-question-of-dns-protocols>.
 
    [Paxson]   "End-to-End Internet Packet Dynamics", August 1999,
               <https://cseweb.ucsd.edu/classes/fa01/cse222/papers/
@@ -548,8 +548,8 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
    [RFC6891]  Damas, J., Graff, M., and P. Vixie, "Extension Mechanisms
               for DNS (EDNS(0))", STD 75, RFC 6891,
-              DOI 10.17487/RFC6891, April 2013, <https://www.rfc-
-              editor.org/info/rfc6891>.
+              DOI 10.17487/RFC6891, April 2013,
+              <https://www.rfc-editor.org/info/rfc6891>.
 
 
 
@@ -557,16 +557,16 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
 
 
-Song                    Expires October 30, 2018               [Page 10]
+Song                    Expires February 3, 2019               [Page 10]
 
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
 
 
    [RFC7872]  Gont, F., Linkova, J., Chown, T., and W. Liu,
               "Observations on the Dropping of Packets with IPv6
               Extension Headers in the Real World", RFC 7872,
-              DOI 10.17487/RFC7872, June 2016, <https://www.rfc-
-              editor.org/info/rfc7872>.
+              DOI 10.17487/RFC7872, June 2016,
+              <https://www.rfc-editor.org/info/rfc7872>.
 
    [RFC7873]  Eastlake 3rd, D. and M. Andrews, "Domain Name System (DNS)
               Cookies", RFC 7873, DOI 10.17487/RFC7873, May 2016,
@@ -574,88 +574,20 @@ Internet-DraATR: Additional Truncation Response for Large DN  April 2018
 
    [scoring-dns-root]
               APNIC, "Scoring the DNS Root Server System", November
-              2016, <https://blog.apnic.net/2016/11/15/scoring-dns-root-
-              server-system/>.
+              2016, <https://blog.apnic.net/2016/11/15/
+              scoring-dns-root-server-system/>.
 
    [Tinta]    "Characterizing End-to-End Packet Reordering with UDP
-              Traffic", August 2009,
-              <https://static.googleusercontent.com/media/
-              research.google.com/en//pubs/archive/35247.pdf>.
+              Traffic", August 2009, <https://static.googleusercontent.c
+              om/media/research.google.com/en//pubs/archive/35247.pdf>.
 
-Appendix A.  How well does ATR actually work?
-
-   It is worth of mentioning APNIC report[How-ATR-Work] on "How well
-   does ATR actually work?" done by Geoff Huston and Joao Damas after 00
-   version of ATR draft.  It was reported firstly in IEPG meeting before
-   IETF 101 and then posted in APNIC Blog later.
-
-   It is said the test was performed over 55 million endpoints, using an
-   online ad distribution network to deliver the test script across the
-   Internet.  The result is positive that ATR works!  From the end
-   users' perspective, in some 9% of IPv4 cases the use of ATR by the
-   server will improve the speed of resolution of a fragmented UDP
-   response by signaling to the client an immediate switch to TCP to
-   perform a re-query.  The IPv6 behavior would improve the resolution
-   times in 15% of cases.
-
-   It also analyzed the pros and cons of ATR.  On one hand, It is said
-   that ATR certainly looks attractive if the objective is to improve
-   the speed of DNS resolution when passing large DNS responses.  And
-   ATR is incrementally deployable in favor of decision made by each
-   server operator.  On another hand, ATR also has some negative
-   factors.  One issue is adding another DNS DDoS attack vector due to
-   the additional packet sent by ATR, (author's note : very small adding
-   actually.)  Another issue is risk of RO by the choice of the delay
-   timer which is discussed fully in Section 4.1.
-
-   As a conclusion, it is said that "ATR does not completely fix the
-   large response issue.  If a resolver cannot receive fragmented UDP
-
-
-
-Song                    Expires October 30, 2018               [Page 11]
-
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
-
-
-   responses and cannot use TCP to perform DNS queries, then ATR is not
-   going to help.  But where there are issues with IP fragment
-   filtering, ATR can make the inevitable shift of the query to TCP a
-   lot faster than it is today.  But it does so at a cost of additional
-   packets and additional DNS functionality".  "If a faster DNS service
-   is your highest priority, then ATR is worth considering", said at the
-   end of this report
-
-   This test and report definitely made ATR more shiny attracting
-   attention in the community.  But it is found that there are still
-   something unknown on "How well does ATR actually work".  Firstly the
-   test only counts the "success" case ("failure" otherwise) in which
-   the "success" for large UDP case can be achieved by normal retries.
-   The latency of that retries may reduced by ATR is not taken into
-   account.
-
-   Secondly more analysis could be done in future to compare ATR with
-   TCP.  From the failure rate of users, we see ATR and TCP have similar
-   performance (same for IPv4, and only 2% difference in IPv6).  But
-   there are resolvers who are able to receive the fragments more sooner
-   in ATR case , but they fall back to TCP in TCP case.  If not
-   misunderstood, the two unknown parts underestimates the benefit of
-   ATR in terms of speed of response.
-
-   The third unknown part is about the ATR timer and RO impact.  In
-   APNIC test, 10 ms was adopted as the delay of ATR timer according to
-   00 version of this draft.  Different delay of ATR timer may not
-   change the key result on gains of ATR (9% for IPv4 and 15% for IPv6).
-   But the cost of RO is not measured.  In the majority cases ATR is not
-   needed, say 87% in IPv4, and 79% in IPv6.  So it overestimate ATR in
-   this regards if RO cost is not taken into account.
-
-Appendix B.  Considerations on Resolver awareness of ATR
+Appendix A.  Considerations on Resolver awareness of ATR
 
    ATR proposed in this memo is a server-side function which requires no
    change in resolver, so it is not required that resolver should
-   recognized or use AT bit.  But it may helpful for some special cases
-   where a resolver is able to recognized or use AT bit.
+   recognized or use AT bit.But it may helpful for some special cases
+   where a resolver is able to recognized ATR response by checking the
+   large edns0 payload size and TrunCation bit.
 
    One case is that when receiving a ATR response a ATR-aware resolver
    can adopt a "happyeyeballs" strategy by opening a separate
@@ -667,21 +599,80 @@ Appendix B.  Considerations on Resolver awareness of ATR
    resolver's resource.  Less priority should be given to that function
    when the resolver is "busy".
 
+   However resolver use case of ATR is currently outside of the scope of
+   server-ATR proposal.  It needs further discussion.
+
+Appendix B.  Revision history of this document
+
+B.1.  draft-song-atr-large-resp-01
+
+   After receiving reviews and comments, changes of 01 version are shown
+   as belows:
 
 
-Song                    Expires October 30, 2018               [Page 12]
+
+
+
+Song                    Expires February 3, 2019               [Page 11]
 
-Internet-DraATR: Additional Truncation Response for Large DN  April 2018
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
 
 
-   Another case is that a ATR-aware resolver is able to indicate its
-   support for ATR to prudent servers who do not reply ATR response to
-   every query and resolver.  If that requirement is valid, it is
-   possible for resolver to re-use the AT bit defined in this memo as a
-   indication asking ATR response from the server.
+   o  Rewrite introduction and add another goal of ATR as a measuring
+      tool;
 
-   However the two cases are currently outside of the scope of server-
-   ATR specification.  It needs further discussion.
+   o  Add section 3 indicating a ATR response.  An bit in the EDNS0 OPT
+      header is defined as a indicator of ATR response.  The flag bit is
+      called "ATR Response" (AT) bit;
+
+   o  Add Section 4 Operation considerations, which discuss ATR timer ,
+      ATR payload size, and less aggressiveness of ATR;
+
+   o  Add IANA consideration to register the AT bit;
+
+   o  Add section 7 Acknowledgments;
+
+   o  Append a list of references regarding Network reordering, and
+      APNIC's study on IPv6 and DNS;
+
+   o  Add Appendix A, An introduce of APNIC testing work and author's
+      comments;
+
+   o  Appendix B.  Considerations on Resolver awareness of ATR;
+
+   o  Change the category="std" . It is said in RFC6891 IETF Standards
+      Action is required for assignments of new EDNS(0) flags.  So the
+      draft should be categorized as standard track if registering AT
+      bit is desired in this document.
+
+   Change history is also available in the public GitHub repository
+   where this document is maintained: <https://github.com/songlinjian/
+   DNS_ATR>.
+
+B.2.  draft-song-atr-large-resp-02
+
+   Changes in 02 version of ATR draft:
+
+   o  Remove the section of introduction of AT bit as well as
+      requirement of IANA registration of that bit;
+
+   o  Change the category of this document to experimental and move the
+      introduction of APNIC's experiment from Appendix A to section 3;
+
+   o  Add a operation consideration of using ATR as a measurement tool;
+
+   o  Add IANA consideration to register the AT bit;
+
+   o  Add more names in Acknowledgments part after IETF102;
+
+
+
+
+
+Song                    Expires February 3, 2019               [Page 12]
+
+Internet-DrafATR: Additional Truncation Response for Large D August 2018
+
 
 Author's Address
 
@@ -725,4 +716,13 @@ Author's Address
 
 
 
-Song                    Expires October 30, 2018               [Page 13]
+
+
+
+
+
+
+
+
+
+Song                    Expires February 3, 2019               [Page 13]

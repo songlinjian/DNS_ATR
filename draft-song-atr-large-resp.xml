@@ -10,7 +10,7 @@
 <!ENTITY RFC6891 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6891.xml">
 <!ENTITY RFC7872 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7872.xml">
 <!ENTITY RFC7873 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7873.xml">
-
+ 
 
 <!ENTITY I-D.taylor-v6ops-fragdrop SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-taylor-v6ops-fragdrop-02.xml">
 
@@ -44,7 +44,7 @@
 <!-- end of list of popular I-D processing instructions -->
 <?rfc comments="no" ?>
 <?rfc inline="yes" ?>
-<rfc category="std" docName="draft-song-atr-large-resp-01" ipr="trust200902">
+<rfc category="exp" docName="draft-song-atr-large-resp-02" ipr="trust200902">
 
   <front>
 
@@ -74,9 +74,7 @@
         simple improvement on DNS server by replying an additional 
         truncated response just after the normal fragmented response. 
         It can be used to relieve users suffering on DNS latency and 
-        failures due to large DNS response. It also can be utilized 
-        as a measuring and troubleshooting tool to locate the issue 
-        and conquer.  
+        failures due to large DNS response. 
       </t>
 
       <t>REMOVE BEFORE PUBLICATION: The source of the document with test script 
@@ -98,7 +96,7 @@
         (larger than 512 octets) by indicating (set TrunCation bit) 
         the resolver to fall back to query via TCP. Due to the fear of 
         cost of TCP, EDNS(0) <xref target="RFC6891" /> was 
-        proposed which encourages server to reponse larger 
+        proposed which encourages server to response larger 
         response instead of falling back to TCP. However, as the 
         increasing use of DNSSEC and IPv6, there are more public 
         evidence and concerns on user's suffering due to packets 
@@ -155,26 +153,20 @@
        </t>
 
       <t>
-        Another goal of ATR is to help troubleshooting for DNS operators 
-        where ATR can be deployed as a measurement tool. A flag bit is 
-        required in EDNS0 OPT header to distinguish ATR response from 
-        a ordinary truncated response. A resolver (or troubleshooter) 
-        can tell if there is any fragment not received in a certain 
-        transaction by capturing that flag bit. On the server side, 
-        the operator can turn on the ATR function occasionally for 
-        some resolvers and record the TCP connection it received 
-        during the period. The data may be helpful to do some 
-        fine-grained analysis to evaluate the performance among different 
-        name servers, and provide ATR to specific group of resolvers.
+        Another possible use of ATR is to help troubleshooting for DNS operators 
+        where ATR can be deployed as a measurement tool to identify vulnerable 
+        servers and users. The presence of both Large EDNS0 payload size and 
+        TrunCation bit can tell if there is any fragment not 
+        received in a certain transaction with a name server by receiving 
+        only ATR response without ordinary UDP response. Another measuring approach 
+        using ATR is to selectively reply ATR response to specific 
+        group of resolvers and record the TCP connections it received during 
+        that period. It can help identify vulnerable users and adopt ATR to 
+        them.  
         </t> 
 
         <t>
-
-        [REMOVE BEFORE PUBLICATION] Note that in Appendix A of this memo 
-        there is a brief introduction of the test done by APNIC on how well 
-        does ATR actually work. And comments are also attached by the author 
-        of this memo. It may help people to understand what the benefit and 
-        tradeoff that ATR brings.</t>
+        [REMOVE BEFORE PUBLICATION] Note that ATR is not just a proposed idea. Some advocates of ATR implemented it based on BIND9 (https://gitlab.isc.org/isc-projects/bind9/merge_requests/158). And Some verify it based on an large-scale experiment platform of APNIC lab  <xref target="APNIC-experiment"/> which is introduced in this memo. </t>
 
     </section>
     <section title="The ATR mechanism" anchor="ATR_mechanism">
@@ -264,63 +256,48 @@ query |             | No     |             | response
         to receive the large response.</t>
         </section>
 
+    <section title= "Experiment on how well ATR works" anchor="APNIC-experiment">
 
-    <section title="Indicating a ATR response">
+      <t>It is worth of mentioning APNIC report<xref target="How-ATR-Work"/> 
+      on "How well does ATR actually work?" done by Geoff Huston and 
+      Joao Damas after 00 version of ATR draft. It was reported firstly 
+      in IEPG meeting before IETF 101 and then posted in APNIC Blog later.
+      </t>
+
+      <t>It is said the test was performed over 55 million endpoints, 
+        using an on-line ad distribution network to deliver the test 
+        script across the Internet. The result is positive that 
+        ATR works! From the end users' perspective, in some 9% of 
+        IPv4 cases the use of ATR by the server will improve the 
+        speed of resolution of a fragmented UDP response by signaling 
+        to the client an immediate switch to TCP to perform a 
+        re-query. The IPv6 behavior would improve the resolution 
+        times in 15% of cases.</t>
 
       <t>
-        As introduced in ATR it is necessary to distinguish ATR response 
-        in a special way from a ordinary truncated response. It enables 
-        resolver operators to log cases where ATR responses is received 
-        without a (reassembled) UDP response to a query. Without an 
-        indicator that distinguishes ATR response, there would be no 
-        way to avoid false alarms from authoritative servers that always 
-        and only return truncated responses when the message exceeds some 
-        size. It is actually the use case where Google RDNS is considering. 
-        Google RDNS would like to use such indications to flag problematic 
-        name servers where RDNS should restrict maximum EDNS to a lower 
-        value than the default 4096 that currently used.
+        It also analyzed the pros and cons of ATR. On one hand, It is 
+        said that ATR certainly looks attractive if the objective is 
+        to improve the speed of DNS resolution when passing large DNS 
+        responses. And ATR is incrementally deployable in favor of 
+        decision made by each server operator. On another hand, ATR 
+        also has some negative factors. One issue is adding another DNS 
+        DDoS attack vector due to the additional packet sent by ATR, 
+        (author's note : very small adding actually.) Another issue is 
+        risk of RO by the choice of the delay timer which is discussed 
+        fully in <xref target="ATR-timer"/>.    
       </t>
 
       <t>
-        A simple way for that indicator of ATR response is to define a 
-        bit in the Z field on the EDNS0 OPT header in the response. This 
-        has the virtue of simplicity, and only a minimal risk of breaking 
-        existing implementations. This bit is referred to as the "ATR Response" (AT) bit.  In the context of the EDNS0 OPT meta-RR, just following the 
-        DO bit, the AT bit is the second bit of the third and fourth bytes 
-        of the "extended RCODE and flags" portion (section 6.1.3 of RFC6891) 
-        of the EDNS0 OPT meta-RR, structured as follows:
+        As a conclusion, it is said that "ATR does not 
+        completely fix the large response issue. If a resolver cannot 
+        receive fragmented UDP responses and cannot use TCP to perform 
+        DNS queries, then ATR is not going to help. But where there are 
+        issues with IP fragment filtering, ATR can make the inevitable 
+        shift of the query to TCP a lot faster than it is today. But it 
+        does so at a cost of additional packets and additional DNS 
+        functionality". "If a faster DNS service is your highest priority, 
+        then ATR is worth considering", said at the end of this report 
       </t>
-      <figure anchor="AT-bit" title="Wire format of extended RCODE and flags with AT bit">
-        <artwork>
-        <![CDATA[
-                 +0 (MSB)                +1 (LSB)
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      0: |   EXTENDED-RCODE      |       VERSION         |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      2: |DO|AT|                 Z                       |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-
-        ]]>
-        </artwork>
-      </figure>
-      <t>
-       The logic of AT bit is simple that setting the AT bit to 
-       one in a response indicates to the resolver that the response 
-       is an ATR response. The DO bit cleared(set to zero) indicates 
-       the response is a ordinary response. Note that AT bit and TC 
-       bit SHOULD be set and appear in the response as a pair. The 
-       response will be ignored if only AT bit is set.
-     </t>
-
-     <t>
-      The indication of ATR defined in this memo is for measurement and 
-      logging purpose. But it is possible used by resolver operator 
-      in other aspects, because it signals the resolver the large 
-      response is fragmented and dropped on the path. The resolver 
-      could be encouraged to act more actively to get the answer 
-      depending on local policy. More is discussed in <xref target="Resolver-Consideration"/>.
-     </t>
-   
     </section>
 
     <section title="Operational considerations">
@@ -442,7 +419,8 @@ query |             | No     |             | response
          
         <t>
           In the case of ATR considering the second truncated response, a smaller 
-          size: 1280 octets(IPv6 MTU for most network devices) should be chosen as 
+          size: 1232 octets, which is IPv6 MTU for most network devices(1280) 
+          minus the sum of IPv6 header(40) and UDP header(8), should be chosen as 
           ATR payload size to trigger necessary TCP fallback. As a complementary 
           requirement with ATR, the TCP MSS should be set 1220 octets to avoid 
           Packet Too Big ICMP message as suggested in the APNIC study. 
@@ -450,17 +428,19 @@ query |             | No     |             | response
 
         <t>
           In short, it is recommended that in IPv4 ATR payload size SHOULD be 
-          1475 octets, and in IPv6 the value SHOULD be 1280 octets. 
+          1472 octets, and in IPv6 the value SHOULD be 1232 octets. 
         </t>
 
         </section>
 
-        <section title="Less aggresiveness of ATR">
+        <section title="Less aggressiveness of ATR">
         <t>
         There is a concern ATR sends TC=1 response too aggressively 
-        especially in the beginning of adoption. One of the idea to 
-        mitigate this aggressiveness, ATR may respond TC=1 responses 
-        at a low possibility, such as 10%. 
+        especially in the beginning of adoption. ATR can be implemented 
+        as an optional and configurable feature at the disposal 
+        of authoritative server operator. One of the idea to mitigate this 
+        aggressiveness, ATR may respond TC=1 responses at a low possibility, 
+        such as 10%. 
         </t>
         <t>
         Another way to mitigating is to reply ATR response selectively. It is 
@@ -472,48 +452,61 @@ query |             | No     |             | response
         the white list.
         </t>
         </section>
+        <section title="ATR Indicator">
+          <t>
+        There are use cases when ATR is used as measurement tool by which 
+        resolver operators are able to flag problematic name servers. 
+        In order to achieve that it is necessary to distinguish ATR response 
+        in a special way from a ordinary truncated response. The presence of 
+        both Large EDNS0 payload size and TrunCation bit in a DNS response 
+        packet can be identified as ATR indicator. It enables resolver 
+        operators to log cases where ATR responses is received without a 
+        (reassembled) UDP response to a query.  In the case of receiving 
+        a ATR, RDNS can choose to restrict maximum EDNS to a lower value 
+        than the default 4096 that currently used. 
+          </t>
+      <t> 
+        Another measuring approach using ATR is to selectively reply ATR 
+        response to specific group of resolvers and record the TCP connections
+        it received during that period.  It can help identify vulnerable users 
+        and adopt ATR to them.
+      </t>
+        </section>
     </section>
 
   <section title="Security Considerations">
     <t>
     There may be concerns on DDoS attack problem due to the fact that the 
-    ATR introduces multiple responses from authoritative server. DNS cookies <xref target="RFC7873" />  
-    and RRL on authoritative may be possible solutions</t>
+    ATR introduces multiple responses from authoritative server. The extra 
+    packet is pretty small. In the worst case, it's 50% more packets and they 
+    are small</t>
+
+    <t>DNS cookies <xref target="RFC7873" /> and RRL on authoritative may be possible solutions</t>
+
+    <t>
+       
+
+    </t>
 
   </section>
 
     <section title="IANA considerations">
-      
 
-      <t>EDNS(0) <xref target="RFC6891"/> defines 16 bits as extended flags in 
-        the OPT record, these bits are encoded into the TTL field of the 
-        OPT record. IETF Standards Action is required for assignments of 
-        new EDNS(0) flags.</t>
+    <t>No IANA considerations for this memo</t>
 
-      <t>This document reserves one of these bits as the AT bit. It is requested 
-        that the second bit (left most) be allocated. Thus the USE of the OPT 
-        record TTL field would look like:</t>
-
-      <figure anchor="AT-bit-iana" title="the USE of the OPT record TTL field for AT bit">
-        <artwork>
-        <![CDATA[
-                 +0 (MSB)                +1 (LSB)
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      0: |   EXTENDED-RCODE      |       VERSION         |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      2: |DO|AT|                 Z                       |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-        ]]>
-        </artwork>
-      </figure>
     </section>
 
    <section title="Acknowledgments">
     <t>
-    Thank Geoff Huston and Joao Damas for their testing 
-    work in APNIC lab on "How well does ATR actually work?". 
-    It gives ATR a new born. Akira Kato contributed 
-    ideas on operational consideration. 
+    Many thanks to reviewers and their comments. Geoff Huston 
+    and Joao Damas did a testing on the question "How well does ATR actually work?". 
+    Alexander Dupuy proposed the idea to distinguish ATR responses 
+    from normal ones. Akira Kato contributed ideas on operational consideration. 
+    Shane Kerr help author with the security consideration. Stephane Bortzmeyer gave thought of happyeyeballs on resolver side. </t> 
+
+    <t>
+    Acknowledgments are also give to Mukund Sivaraman, Evan Hunt and Mark Andrews 
+    who implement it and maintained it in a brunch in BIND9 code base. 
     </t>
   </section> <!-- Acknowledgments -->
   </middle>
@@ -630,6 +623,7 @@ query |             | No     |             | response
 
      </references>
 
+<!--
     <section title="How well does ATR actually work?">
 
       <t>It is worth of mentioning APNIC report<xref target="How-ATR-Work"/> 
@@ -639,7 +633,7 @@ query |             | No     |             | response
       </t>
 
       <t>It is said the test was performed over 55 million endpoints, 
-        using an online ad distribution network to deliver the test 
+        using an on-line ad distribution network to deliver the test 
         script across the Internet. The result is positive that 
         ATR works! From the end users' perspective, in some 9% of 
         IPv4 cases the use of ATR by the server will improve the 
@@ -672,7 +666,7 @@ query |             | No     |             | response
         functionality". "If a faster DNS service is your highest priority, 
         then ATR is worth considering", said at the end of this report 
       </t>
-
+    
       <t>
         This test and report definitely made ATR more shiny attracting 
         attention in the community. But it is found that there 
@@ -699,16 +693,18 @@ query |             | No     |             | response
         87% in IPv4, and 79% in IPv6. So it overestimate ATR in this regards 
         if RO cost is not taken into account. 
       </t>
-    </section>
 
+    </section>
+-->  
         <section title="Considerations on Resolver awareness of ATR" anchor="Resolver-Consideration">
     
     <t>
        ATR proposed in this memo is a server-side function which 
        requires no change in resolver, so it is not required that 
-       resolver should recognized or use AT bit. But it may helpful 
-       for some special cases where a resolver is able to recognized 
-       or use AT bit. </t>
+       resolver should recognized or use AT bit.But it may helpful for 
+       some special cases where a resolver is able to recognized ATR 
+       response by checking the large edns0 payload size and TrunCation 
+       bit. </t>
     <t>
        One case is that when receiving a ATR response a ATR-aware 
        resolver can adopt a "happyeyeballs" strategy by opening a separate 
@@ -719,6 +715,7 @@ query |             | No     |             | response
        reordering issue as well. However, it should be taken into account about 
        the balance of resolver's resource. Less priority should be given  
        to that function when the resolver is "busy".</t>
+    <!--
       <t>
        Another case is that a ATR-aware resolver is able to indicate 
        its support for ATR to prudent servers who do not reply ATR 
@@ -726,12 +723,46 @@ query |             | No     |             | response
        valid, it is possible for resolver to re-use the AT bit defined 
        in this memo as a indication asking ATR response from the server. 
      </t>
+   -->
      <t>  
-       However the two cases are currently outside of the scope of server-ATR 
-       specification. It needs further discussion. 
+       However resolver use case of ATR is currently outside of the scope of 
+       server-ATR proposal. It needs further discussion. 
       </t>
-
     </section>
+
+     <section title="Revision history of this document">
+        <section title="draft-song-atr-large-resp-01">
+
+        <t>After receiving reviews and comments, changes of 01 version are shown as belows:  
+        <list style="symbols">
+        <t>Rewrite introduction and add another goal of ATR as a measuring tool;</t>
+        <t>Add section 3 indicating a ATR response. An bit in the EDNS0 OPT header is defined as a indicator of ATR response. The flag bit is called "ATR Response" (AT) bit;</t>
+        <t>Add Section 4 Operation considerations, which discuss ATR timer , ATR payload size, and less aggressiveness of ATR;</t>
+        <t>Add IANA consideration to register the AT bit;</t>
+        <t>Add section 7 Acknowledgments;</t>
+        <t>Append a list of references regarding Network reordering, and APNIC's study on IPv6 and DNS;</t>
+        <t>Add Appendix A, An introduce of APNIC testing work and author's comments;</t>
+        <t>Appendix B. Considerations on Resolver awareness of ATR;</t>
+        <t>Change the category="std" . It is said in RFC6891 IETF Standards Action is required for assignments of new EDNS(0) flags. So the draft should be categorized as standard track if registering AT bit is desired in this document.</t>
+        </list></t>
+
+          <t>Change history is also available in the public GitHub
+            repository where this document is maintained: <eref
+            target="https://github.com/songlinjian/DNS_ATR"/>.</t>
+        </section>
+        <section title="draft-song-atr-large-resp-02">
+        
+        <t>Changes in 02 version of ATR draft:</t>
+        <t>
+        <list style="symbols">
+        <t>Remove the section of introduction of AT bit as well as requirement of IANA registration of that bit;</t>
+        <t>Change the category of this document to experimental and move the introduction of APNIC's experiment from Appendix A to section 3;</t>
+        <t>Add a operation consideration of using ATR as a measurement tool;</t>
+        <t>Add IANA consideration to register the AT bit;</t>
+        <t>Add more names in Acknowledgments part after IETF102;</t>
+        </list></t>
+        </section>
+     </section>
   </back>
 </rfc>
 
